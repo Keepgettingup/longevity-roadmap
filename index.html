@@ -1,0 +1,4620 @@
+<!-- REBUILT v2 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Transhuman Enhancement Roadmap</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #050510; overflow: hidden; font-family: 'Segoe UI', sans-serif; display: flex; }
+
+  /* SIDEBAR */
+  #sidebar {
+    width: 300px;
+    min-width: 300px;
+    height: 100vh;
+    background: rgba(8,8,22,0.97);
+    border-right: 1px solid rgba(120,80,255,0.2);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+    overflow: hidden;
+  }
+  #sidebar-header {
+    padding: 18px 16px 12px;
+    border-bottom: 1px solid rgba(120,80,255,0.15);
+    flex-shrink: 0;
+  }
+  #sidebar-header h2 {
+    color: #fff;
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 400;
+    margin-bottom: 12px;
+  }
+  /* ── MODE TOOLBAR ─────────────────────────────────────────────────────────── */
+  #mode-toolbar {
+    display: flex;
+    gap: 7px;
+    margin-bottom: 10px;
+    align-items: center;
+  }
+  .mode-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.09);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.22s, border-color 0.22s, box-shadow 0.22s;
+    position: relative;
+    overflow: visible;
+    flex-shrink: 0;
+  }
+  .mode-btn svg { display: block; overflow: visible; }
+  .mode-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.18); }
+
+  /* Tooltip */
+  .mode-btn::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: -26px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(10,10,28,0.92);
+    color: rgba(255,255,255,0.8);
+    font-size: 10px;
+    letter-spacing: 1px;
+    padding: 3px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .mode-btn:hover::after { opacity: 1; }
+
+  /* Active states */
+  .mode-btn.active-sculptor {
+    border-color: rgba(168,144,112,0.65);
+    background: rgba(168,144,112,0.13);
+    box-shadow: 0 0 14px rgba(168,144,112,0.35);
+  }
+  .mode-btn.active-axe {
+    border-color: rgba(255,100,68,0.65);
+    background: rgba(255,100,68,0.13);
+    box-shadow: 0 0 14px rgba(255,100,68,0.4);
+  }
+  .mode-btn.active-blood {
+    border-color: rgba(231,76,60,0.65);
+    background: rgba(231,76,60,0.13);
+    box-shadow: 0 0 14px rgba(231,76,60,0.38);
+  }
+  .mode-btn.active-watch {
+    border-color: rgba(0,220,200,0.65);
+    background: rgba(0,220,200,0.10);
+    box-shadow: 0 0 14px rgba(0,220,200,0.32);
+  }
+
+  /* Axe btn hidden until sculptor active */
+  #btn-axe {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(8px);
+    transition: opacity 0.2s, transform 0.2s, background 0.22s, border-color 0.22s, box-shadow 0.22s;
+  }
+  #btn-axe.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+  }
+
+  /* ── ICON ANIMATIONS ────────────────────────────────────────────────────────── */
+
+  /* Sculptor: chisel swing on hover */
+  @keyframes chisel-swing {
+    0%   { transform: rotate(0deg); }
+    35%  { transform: rotate(-18deg); }
+    65%  { transform: rotate(-6deg); }
+    100% { transform: rotate(0deg); }
+  }
+  #btn-sculptor:hover .chisel-group { animation: chisel-swing 0.32s ease-out forwards; }
+
+  /* Sculptor active: crack pulse */
+  @keyframes crack-pulse {
+    0%,100% { stroke-opacity: 0.35; }
+    50%     { stroke-opacity: 0.85; }
+  }
+  #btn-sculptor.active-sculptor .stone-cracks {
+    animation: crack-pulse 1.8s ease-in-out infinite;
+  }
+
+  /* Sculptor active: stone-particle burst (CSS only, one-shot on click via class) */
+  @keyframes stone-burst {
+    0%   { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--bx), var(--by)) scale(0); opacity: 0; }
+  }
+  .stone-particle {
+    position: absolute;
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: #a89070;
+    pointer-events: none;
+    animation: stone-burst 0.45s ease-out forwards;
+  }
+
+  /* Axe: swing on hover */
+  @keyframes axe-swing {
+    0%   { transform: rotate(0deg) translateZ(0); }
+    25%  { transform: rotate(-28deg); }
+    60%  { transform: rotate(12deg); }
+    80%  { transform: rotate(-5deg); }
+    100% { transform: rotate(0deg); }
+  }
+  #btn-axe:hover .axe-group { animation: axe-swing 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+  /* Axe active: blood-drop pulse */
+  @keyframes drop-pulse {
+    0%,100% { transform: scale(1); }
+    50%     { transform: scale(1.5); }
+  }
+  #btn-axe.active-axe .axe-drop { animation: drop-pulse 1.4s ease-in-out infinite; }
+
+  /* Bloodline: spike grow on hover */
+  @keyframes spike-grow {
+    0%   { transform: scaleY(1); }
+    40%  { transform: scaleY(2.2); }
+    100% { transform: scaleY(1); }
+  }
+  #btn-blood:hover .bl-spike { animation: spike-grow 0.28s ease-out forwards; transform-origin: bottom; }
+
+  /* Bloodline active: flowing dash */
+  @keyframes dash-flow {
+    to { stroke-dashoffset: -24; }
+  }
+  #btn-blood.active-blood .bl-line {
+    stroke-dasharray: 4 4;
+    animation: dash-flow 0.9s linear infinite;
+  }
+
+  /* Watch: blink on hover */
+  @keyframes eye-blink {
+    0%,100% { transform: scaleY(1); }
+    45%     { transform: scaleY(0.08); }
+    55%     { transform: scaleY(0.08); }
+  }
+  #btn-watch:hover .eye-lid { animation: eye-blink 0.28s ease-in-out forwards; transform-origin: center; }
+
+  /* Watch active: iris rotate */
+  @keyframes iris-spin {
+    to { transform: rotate(360deg); }
+  }
+  #btn-watch.active-watch .eye-iris { animation: iris-spin 8s linear infinite; transform-origin: 19px 19px; }
+
+  /* Watch active: pupil pulse */
+  @keyframes pupil-pulse {
+    0%,100% { r: 2.5; }
+    50%     { r: 3.8; }
+  }
+  #btn-watch.active-watch .eye-pupil { animation: pupil-pulse 2s ease-in-out infinite; }
+
+  /* Watch activate: scan sweep */
+  @keyframes scan-sweep {
+    0%   { transform: scaleX(0) translateX(-100%); opacity: 0.9; }
+    100% { transform: scaleX(1) translateX(0); opacity: 0; }
+  }
+  .watch-scan {
+    position: absolute;
+    height: 1px;
+    width: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0,220,200,0.8), transparent);
+    pointer-events: none;
+    animation: scan-sweep 0.35s ease-out forwards;
+  }
+  #search-wrap {
+    padding: 10px 12px 0;
+    position: relative;
+    flex-shrink: 0;
+  }
+  #search-input {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(120,80,255,0.3);
+    border-radius: 8px;
+    padding: 8px 32px 8px 12px;
+    color: #fff;
+    font-size: 12px;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  #search-input:focus {
+    border-color: rgba(120,80,255,0.7);
+    background: rgba(255,255,255,0.08);
+  }
+  #search-input::placeholder { color: rgba(255,255,255,0.25); }
+  #search-clear {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.3);
+    font-size: 14px;
+    cursor: pointer;
+    display: none;
+    line-height: 1;
+    padding: 0;
+  }
+  #search-clear.visible { display: block; }
+  #search-results {
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 12px;
+    right: 12px;
+    background: rgba(10,8,24,0.98);
+    border: 1px solid rgba(120,80,255,0.35);
+    border-radius: 8px;
+    max-height: 240px;
+    overflow-y: auto;
+    z-index: 50;
+    display: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  }
+  #search-results.open { display: block; }
+  .sr-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    transition: background 0.1s;
+  }
+  .sr-item:last-child { border-bottom: none; }
+  .sr-item:hover, .sr-item.active { background: rgba(120,80,255,0.2); }
+  .sr-item .sr-label {
+    font-size: 12px;
+    color: #fff;
+    font-weight: 500;
+  }
+  .sr-item .sr-label mark {
+    background: rgba(120,80,255,0.5);
+    color: #fff;
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+  .sr-item .sr-cat {
+    font-size: 9px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: rgba(180,160,255,0.55);
+  }
+  #search-results::-webkit-scrollbar { width: 3px; }
+  #search-results::-webkit-scrollbar-thumb { background: rgba(120,80,255,0.35); border-radius: 2px; }
+  #stats {
+    font-size: 10px;
+    color: rgba(180,160,255,0.5);
+    text-align: center;
+    margin-top: 8px;
+  }
+  #tree {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 0 20px;
+  }
+  #tree::-webkit-scrollbar { width: 4px; }
+  #tree::-webkit-scrollbar-track { background: transparent; }
+  #tree::-webkit-scrollbar-thumb { background: rgba(120,80,255,0.3); border-radius: 2px; }
+
+  /* TREE ITEMS */
+  .branch { margin: 0; }
+  .branch-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    cursor: pointer;
+    color: rgba(255,255,255,0.85);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: background 0.15s;
+    user-select: none;
+  }
+  .branch-header:hover { background: rgba(120,80,255,0.1); }
+  .branch-header .chevron {
+    font-size: 9px;
+    color: rgba(255,255,255,0.3);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .branch-header.open .chevron { transform: rotate(90deg); }
+  .branch-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .branch-children { display: none; }
+  .branch-children.open { display: block; }
+
+  .node-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 14px 5px 28px;
+    cursor: pointer;
+    font-size: 11px;
+    color: rgba(200,180,255,0.45);
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    user-select: none;
+  }
+  .node-item:hover { background: rgba(120,80,255,0.08); color: rgba(200,180,255,0.8); }
+  .node-item.known {
+    color: #e0d4ff;
+    border-left-color: rgba(120,80,255,0.6);
+  }
+  .node-item.known .node-dot { box-shadow: 0 0 6px currentColor; }
+  .node-item .node-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    opacity: 0.6;
+    transition: box-shadow 0.2s;
+  }
+  .node-item.known .node-dot { opacity: 1; }
+  .node-item .node-label { flex: 1; line-height: 1.3; }
+  .node-item .known-badge {
+    font-size: 9px;
+    color: rgba(120,255,180,0.7);
+    display: none;
+  }
+  .node-item.known .known-badge { display: block; }
+
+  .sub-children { display: none; }
+  .sub-children.open { display: block; }
+  .sub-node-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 14px 4px 44px;
+    cursor: pointer;
+    font-size: 10px;
+    color: rgba(180,160,255,0.35);
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .sub-node-item:hover { color: rgba(180,160,255,0.7); }
+  .sub-node-item.known { color: rgba(200,190,255,0.8); }
+  .sub-node-item .node-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; opacity: 0.5; }
+  .sub-node-item.known .node-dot { opacity: 1; box-shadow: 0 0 4px currentColor; }
+
+  /* GRAPH */
+  #graph-wrap { flex: 1; position: relative; }
+  #graph { width: 100%; height: 100vh; }
+
+  #tooltip {
+    position: fixed;
+    background: rgba(10,10,30,0.95);
+    border: 1px solid rgba(120,80,255,0.5);
+    border-radius: 8px;
+    padding: 10px 16px;
+    color: #e0d0ff;
+    font-size: 13px;
+    pointer-events: none;
+    display: none;
+    max-width: 240px;
+    box-shadow: 0 0 20px rgba(120,80,255,0.3);
+    backdrop-filter: blur(8px);
+    z-index: 999;
+  }
+  #tooltip .t-label { font-weight: 700; font-size: 13px; color: #fff; margin-bottom: 3px; }
+  #tooltip .t-cat { font-size: 10px; color: #a080ff; margin-bottom: 4px; }
+  #tooltip .t-status { font-size: 10px; color: rgba(120,255,180,0.7); }
+
+  #title {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255,255,255,0.7);
+    font-size: 16px;
+    font-weight: 300;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    text-shadow: 0 0 30px rgba(150,100,255,0.6);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  #controls {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    color: rgba(255,255,255,0.25);
+    font-size: 10px;
+    text-align: right;
+    line-height: 1.8;
+    pointer-events: none;
+  }
+
+  /* WIKI PANEL */
+  #wiki-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    pointer-events: none;
+  }
+  body.wiki-open #proximity-labels,
+  body.wiki-open #connection-labels,
+  body.wiki-open .graph-tooltip,
+  body.wiki-open canvas + div {
+    display: none !important;
+  }
+  #wiki-overlay.open { display: block; }
+  #wiki-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(5,5,16,0.55);
+    pointer-events: all;
+    cursor: pointer;
+  }
+  #wiki-panel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(700px, 72vw);
+    max-height: 78vh;
+    background: rgba(8,8,24,0.97);
+    border: 1px solid rgba(120,80,255,0.45);
+    border-radius: 14px;
+    box-shadow: 0 0 60px rgba(120,80,255,0.3), 0 0 120px rgba(80,200,180,0.1);
+    backdrop-filter: blur(20px);
+    pointer-events: all;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: panelIn 0.25s cubic-bezier(.2,.8,.3,1);
+  }
+  @keyframes panelIn {
+    from { opacity:0; transform: translate(-50%,-48%) scale(0.96); }
+    to   { opacity:1; transform: translate(-50%,-50%) scale(1); }
+  }
+  #wiki-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid rgba(120,80,255,0.2);
+    flex-shrink: 0;
+  }
+  #wiki-panel-header .wp-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    flex: 1;
+    line-height: 1.3;
+  }
+  #wiki-panel-header .wp-cat {
+    font-size: 10px;
+    color: #a080ff;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  #wiki-close {
+    background: none;
+    border: 1px solid rgba(120,80,255,0.3);
+    border-radius: 6px;
+    color: rgba(200,180,255,0.6);
+    width: 28px; height: 28px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  #wiki-close:hover { background: rgba(120,80,255,0.2); color: #fff; }
+  #wiki-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  #wiki-body::-webkit-scrollbar { width: 4px; }
+  #wiki-body::-webkit-scrollbar-thumb { background: rgba(120,80,255,0.3); border-radius: 2px; }
+  #wiki-thumb {
+    float: right;
+    margin: 0 0 16px 20px;
+    max-width: 180px;
+    border-radius: 8px;
+    border: 1px solid rgba(120,80,255,0.2);
+    opacity: 0.9;
+  }
+  #wiki-extract {
+    color: rgba(220,210,255,0.85);
+    font-size: 13px;
+    line-height: 1.75;
+  }
+  #wiki-footer {
+    padding: 12px 20px;
+    border-top: 1px solid rgba(120,80,255,0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  #wiki-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 16px;
+    background: linear-gradient(135deg, rgba(120,80,255,0.3), rgba(80,200,180,0.2));
+    border: 1px solid rgba(120,80,255,0.5);
+    border-radius: 6px;
+    color: #c8b8ff;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  #wiki-link:hover { background: linear-gradient(135deg,rgba(120,80,255,0.5),rgba(80,200,180,0.35)); color:#fff; }
+  #wiki-hint {
+    font-size: 10px;
+    color: rgba(255,255,255,0.2);
+    margin-left: auto;
+  }
+  #wiki-loading {
+    color: rgba(160,140,220,0.5);
+    font-size: 13px;
+    text-align: center;
+    padding: 40px 0;
+  }
+
+  /* PROXIMITY LABELS - float over closest 3 nodes */
+  #proximity-labels {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 20;
+  }
+  .prox-label {
+    position: absolute;
+    transform: translate(-50%, -100%) translateY(-12px);
+    background: rgba(8,8,24,0.92);
+    border: 1px solid rgba(120,80,255,0.4);
+    border-radius: 8px;
+    padding: 6px 12px;
+    backdrop-filter: blur(6px);
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    box-shadow: 0 0 16px rgba(120,80,255,0.2);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .p-eye {
+    font-size: 10px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .prox-label.visible { opacity: 1; }
+  .prox-label.visible .p-eye { opacity: 0.8; }
+  .watch-mode .prox-label.visible .p-eye { 
+    opacity: 1; 
+    color: #00d4ff;
+    text-shadow: 0 0 8px rgba(0,212,255,0.8);
+  }
+
+/* Watch indicator in sidebar */
+.watch-indicator {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  font-size: 8px;
+  color: #00d4ff;
+  text-shadow: 0 0 6px rgba(0,212,255,0.9);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+.watch-mode .watch-indicator {
+  opacity: 1;
+}
+
+  /* NODE BADGES - DIY/BUY/R&D */
+  #node-badges {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 25;
+  }
+  .node-badge {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  .node-badge.diy { background: rgba(39,174,96,0.9); color:#fff; border:1px solid #27ae60; }
+  .node-badge.buy { background: rgba(52,152,219,0.9); color:#fff; border:1px solid #3498db; }
+  .node-badge.rnd { background: rgba(231,76,60,0.9); color:#fff; border:1px solid #e74c3c; }
+  .node-badge.visible { opacity: 1; }
+
+  /* IBM CARBON STYLE INSTITUTION TAGS */
+  .inst-tag {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    font-size: 8px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 12px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+    opacity: 0;
+    transition: opacity 0.25s, transform 0.2s;
+    pointer-events: none;
+    border: 1.5px solid;
+    white-space: nowrap;
+  }
+  /* Carbon color variants */
+  .inst-tag.blue { background: rgba(15,98,254,0.85); color:#fff; border-color:#0f62fe; }
+  .inst-tag.purple { background: rgba(138,63,252,0.85); color:#fff; border-color:#8a3ffc; }
+  .inst-tag.purple-dark { background: rgba(105,41,196,0.9); color:#fff; border-color:#6929c4; }
+  .inst-tag.cyan { background: rgba(69,137,255,0.85); color:#fff; border-color:#4589ff; }
+  .inst-tag.green { background: rgba(36,161,72,0.85); color:#fff; border-color:#24a148; }
+  .inst-tag.red { background: rgba(250,77,86,0.85); color:#fff; border-color:#fa4d56; }
+  .inst-tag.high-contrast { background: rgba(0,0,0,0.9); color:#fff; border-color:#fff; }
+  .inst-tag.visible { opacity: 1; }
+
+  /* CONNECTION LABELS - neighbors of selected node */
+  #connection-labels {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 101;
+  }
+  .conn-label {
+    position: absolute;
+    transform: translate(-50%, -100%) translateY(-12px);
+    background: rgba(20,40,60,0.9);
+    border: 1px solid rgba(80,200,120,0.5);
+    border-radius: 8px;
+    padding: 5px 10px;
+    backdrop-filter: blur(6px);
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+    box-shadow: 0 0 12px rgba(80,200,120,0.3);
+    white-space: nowrap;
+  }
+  .conn-label.visible { opacity: 1; }
+
+/* NODE EYE OVERLAY - for Watch mode */
+#node-eye-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 30;
+}
+.node-eye {
+  position: absolute;
+  font-size: 20px;
+  color: rgba(0,212,255,0.9);
+  text-shadow: 0 0 12px rgba(0,212,255,0.8);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+}
+.node-eye.visible {
+  opacity: 1;
+}
+
+  .conn-label .c-name {
+    font-size: 10px;
+    font-weight: 600;
+    color: #aaffcc;
+    line-height: 1.2;
+  }
+  .conn-label .c-cat {
+    font-size: 7px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: rgba(120,200,160,0.7);
+    margin-top: 1px;
+  }
+
+  .prox-label .p-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.2;
+  }
+  .prox-label .p-cat {
+    font-size: 8px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: rgba(180,160,255,0.75);
+    margin-top: 2px;
+  }
+
+  /* 2D MAP OVERLAY */
+  #map2d-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+  }
+  /* hide all graph UI elements behind the overlay */
+  body.map2d-open #proximity-labels,
+  body.map2d-open #connection-labels,
+  body.map2d-open #tooltip,
+  body.map2d-open .graph-tooltip,
+  body.map2d-open canvas + div { /* ForceGraph CSS2D label layer */
+    display: none !important;
+  }
+  #map2d-overlay.open {
+    display: block;
+  }
+  /* 2D-Map Slide-in Animation */
+  @keyframes slideInPanel {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -45%) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+  @keyframes slideInSection {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  #map2d-overlay.open #map2d-panel {
+    animation: slideInPanel 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .map2d-section {
+    opacity: 0;
+    animation: slideInSection 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  /* Plus Button for Community Additions */
+  /* VOTING PANEL */
+  #vote-panel {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(8,6,22,0.95);
+    border: 1px solid rgba(120,80,255,0.3);
+    border-radius: 40px;
+    padding: 8px 20px;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+  }
+  #vote-panel.visible {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateX(-50%) translateY(0);
+  }
+  #vote-panel .vote-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.6);
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #vote-panel .vote-btn:hover {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    transform: scale(1.15);
+  }
+  #vote-panel .vote-btn.upvote:hover {
+    border-color: rgba(46,204,113,0.6);
+    color: #2ecc71;
+    box-shadow: 0 0 12px rgba(46,204,113,0.3);
+  }
+  #vote-panel .vote-btn.downvote:hover {
+    border-color: rgba(231,76,60,0.6);
+    color: #e74c3c;
+    box-shadow: 0 0 12px rgba(231,76,60,0.3);
+  }
+  #vote-panel .vote-count {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    min-width: 32px;
+    text-align: center;
+  }
+  #vote-panel .vote-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .plus-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    border: none;
+    color: white;
+    font-size: 28px;
+    font-weight: 300;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(46, 204, 113, 0.4);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .plus-btn:hover {
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: 0 6px 30px rgba(46, 204, 113, 0.6);
+  }
+  .plus-btn:active {
+    transform: scale(0.95);
+  }
+  /* Community Input Modal */
+  .community-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(8,6,22,0.98);
+    border: 1px solid rgba(241,196,15,0.4);
+    border-radius: 16px;
+    padding: 24px;
+    min-width: 320px;
+    max-width: 90vw;
+    z-index: 10001;
+    box-shadow: 0 0 60px rgba(0,0,0,0.8);
+  }
+  .community-modal h3 {
+    margin: 0 0 16px 0;
+    color: #f1c40f;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .community-modal select,
+  .community-modal input,
+  .community-modal textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: #fff;
+    font-size: 12px;
+    margin-bottom: 12px;
+    font-family: inherit;
+  }
+  .community-modal select {
+    background-color: #1a1a2e;
+    color: #fff;
+    cursor: pointer;
+  }
+  .community-modal select option {
+    background-color: #1a1a2e;
+    color: #fff;
+    padding: 8px;
+  }
+  .community-modal select option:first-child {
+    color: rgba(255,255,255,0.5);
+  }
+  .community-modal select:focus,
+  .community-modal input:focus,
+  .community-modal textarea:focus {
+    outline: none;
+    border-color: rgba(241,196,15,0.5);
+    background-color: #1a1a2e;
+  }
+  .community-modal button {
+    background: rgba(241,196,15,0.2);
+    border: 1px solid rgba(241,196,15,0.4);
+    color: #f1c40f;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: 8px;
+    transition: all 0.2s;
+  }
+  .community-modal button:hover {
+    background: rgba(241,196,15,0.3);
+  }
+  .community-modal .btn-primary {
+    background: rgba(46, 204, 113, 0.2);
+    border-color: rgba(46, 204, 113, 0.4);
+    color: #2ecc71;
+  }
+  .community-modal .btn-primary:hover {
+    background: rgba(46, 204, 113, 0.3);
+  }
+  #map2d-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(5,5,16,0.55);
+    pointer-events: all;
+    cursor: pointer;
+  }
+  #map2d-panel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    width: min(92vw, 860px);
+    max-height: 85vh;
+    background: rgba(8,6,22,0.97);
+    border: 1px solid rgba(241,196,15,0.45);
+    animation: panelSlideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+    border-radius: 18px;
+    box-shadow: 0 0 60px rgba(241,196,15,0.12), 0 0 120px rgba(0,0,0,0.7);
+    display: flex;
+    flex-direction: column;
+    pointer-events: all;
+    overflow: hidden;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  
+  /* Mindmap Tree Layout */
+  .mindmap-tree {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 0;
+  }
+  
+  .mindmap-branch {
+    position: relative;
+    padding-left: 24px;
+    border-left: 2px solid rgba(241,196,15,0.15);
+    margin-left: 12px;
+    opacity: 0;
+    animation: branchFadeIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  
+  .mindmap-branch::before {
+    content: '';
+    position: absolute;
+    left: -2px;
+    top: 20px;
+    width: 20px;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(241,196,15,0.3), transparent);
+  }
+  
+  .mindmap-branch-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.08);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  
+  .mindmap-branch-header:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(241,196,15,0.2);
+  }
+  
+  .mindmap-expand-btn {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1px solid rgba(241,196,15,0.3);
+    background: rgba(241,196,15,0.1);
+    color: #f1c40f;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  
+  .mindmap-expand-btn:hover {
+    background: rgba(241,196,15,0.2);
+  }
+  
+  .mindmap-branch-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+    flex: 1;
+  }
+  
+  .mindmap-branch-type {
+    font-size: 9px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: rgba(255,255,255,0.08);
+  }
+  
+  .mindmap-nodes-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 0 10px 24px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s;
+    opacity: 0;
+  }
+  
+  .mindmap-nodes-container.expanded {
+    max-height: 500px;
+    opacity: 1;
+  }
+  
+  /* Mindmap Node with Plus Button */
+  .mindmap-node {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 11px;
+    color: #f5e97a;
+  }
+  
+  .mindmap-node:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(241,196,15,0.3);
+    transform: translateY(-2px);
+  }
+  
+  .mindmap-node-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  
+  .mindmap-node-plus {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, #f1c40f, #e67e22);
+    color: #000;
+    font-size: 12px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-left: 4px;
+    transition: all 0.15s;
+    opacity: 0;
+  }
+  
+  .mindmap-node:hover .mindmap-node-plus {
+    opacity: 1;
+  }
+  
+  .mindmap-node-plus:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(241,196,15,0.5);
+  }
+  
+  /* Category Bubble Menu */
+  .category-bubble {
+    position: absolute;
+    background: rgba(15,12,35,0.98);
+    border: 1px solid rgba(241,196,15,0.3);
+    border-radius: 16px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 10000;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    min-width: 140px;
+    animation: bubbleIn 0.2s ease;
+  }
+  
+  @keyframes bubbleIn {
+    from { opacity: 0; transform: scale(0.9) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  
+  .category-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 11px;
+    color: rgba(255,255,255,0.8);
+  }
+  
+  .category-option:hover {
+    background: rgba(255,255,255,0.1);
+  }
+  
+  .category-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+  }
+  
+  .cat-diy { background: rgba(39,174,96,0.3); color: #2ecc71; }
+  .cat-buy { background: rgba(52,152,219,0.3); color: #3498db; }
+  .cat-fact { background: rgba(230,126,34,0.3); color: #e67e22; }
+  .cat-video { background: rgba(231,76,60,0.3); color: #e74c3c; }
+  .cat-dataset { background: rgba(155,89,182,0.3); color: #9b59b6; }
+  .cat-rnd { background: rgba(241,196,15,0.3); color: #f1c40f; }
+  #map2d-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid rgba(241,196,15,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  #map2d-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #f1c40f;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  #map2d-subtitle {
+    font-size: 10px;
+    color: rgba(241,196,15,0.5);
+    margin-top: 2px;
+    letter-spacing: 0.5px;
+  }
+  #map2d-close {
+    background: none;
+    border: 1px solid rgba(241,196,15,0.35);
+    color: #f1c40f;
+    border-radius: 50%;
+    width: 26px; height: 26px;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  #map2d-close:hover { background: rgba(241,196,15,0.15); }
+  #map2d-body {
+    overflow-y: auto;
+    padding: 18px 20px;
+    flex: 1;
+  }
+  .map2d-section {
+    margin-bottom: 22px;
+  }
+  .map2d-section-header {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .map2d-nodes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+  .map2d-node {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+    font-size: 11px;
+    color: rgba(255,255,255,0.82);
+    cursor: default;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .map2d-node:hover {
+    background: rgba(255,255,255,0.09);
+    border-color: rgba(255,255,255,0.22);
+  }
+  .map2d-node-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .map2d-node.has-arm {
+    border-color: rgba(255,255,255,0.28);
+    cursor: pointer;
+  }
+  .map2d-node.has-arm::after {
+    content: '↗';
+    font-size: 9px;
+    color: rgba(255,255,255,0.4);
+    margin-left: 2px;
+  }
+  .map2d-node.has-arm:hover {
+    border-color: rgba(255,220,50,0.6);
+    color: #fff;
+    box-shadow: 0 0 8px rgba(255,220,50,0.15);
+  }
+  #map2d-arms-hint {
+    font-size: 9px;
+    color: rgba(255,255,255,0.28);
+    margin-top: 14px;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+
+  #group-legend {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 20;
+    pointer-events: none;
+  }
+  .gl-item {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    background: rgba(10,8,20,0.72);
+    border: 1px solid var(--gc);
+    color: var(--gc);
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+  }
+
+  /* ── BLOODLINE SYSTEM ─────────────────────────────── */
+  #bloodline-section {
+    border-top: 1px solid rgba(200,40,40,0.15);
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+  #bloodline-section .bl-header {
+    font-size: 10px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: rgba(200,60,60,0.7);
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .bl-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    margin: 2px 0;
+    border-radius: 4px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.6);
+    background: rgba(200,40,40,0.06);
+    border: 1px solid rgba(200,40,40,0.1);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .bl-item:hover {
+    background: rgba(200,40,40,0.12);
+    color: rgba(255,255,255,0.85);
+  }
+  .bl-item .bl-arrow { color: rgba(200,60,60,0.6); font-size: 9px; }
+  .bl-item .bl-node { cursor: pointer; }
+  .bl-item .bl-node:hover { text-decoration: underline; color: #e74c3c; }
+
+  #bloodline-add-btn {
+    position: fixed;
+    bottom: 70px;
+    right: 20px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(200,40,40,0.2);
+    border: 1px solid rgba(200,40,40,0.4);
+    color: #e74c3c;
+    font-size: 16px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 40;
+    transition: all 0.2s;
+  }
+  #bloodline-add-btn:hover { background: rgba(200,40,40,0.35); transform: scale(1.1); }
+  #bloodline-add-btn.picking { background: rgba(200,40,40,0.5); animation: bl-pulse-btn 1s infinite; }
+
+  .bl-droplet {
+    position: absolute;
+    padding: 6px 10px;
+    background: rgba(30,10,10,0.95);
+    border: 1px solid rgba(200,40,40,0.3);
+    border-radius: 8px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.7);
+    max-width: 200px;
+    pointer-events: auto;
+    cursor: pointer;
+    z-index: 30;
+  }
+  .bl-droplet:hover { border-color: rgba(200,40,40,0.6); }
+  .bl-droplet .bl-d-header {
+    font-size: 9px;
+    color: rgba(200,60,60,0.7);
+    margin-bottom: 2px;
+  }
+  
+  /* Auth Menu Animation */
+  @keyframes menuIn {
+    from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* 2D Map Panel Open Animation */
+  @keyframes panelSlideIn {
+    from { opacity: 0; transform: translate(-50%, -48%) scale(0.94); }
+    to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  }
+
+  /* Staggered branch fade-in */
+  @keyframes branchFadeIn {
+    from { opacity: 0; transform: translateX(-12px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes bl-pulse-btn {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(200,40,40,0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(200,40,40,0); }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div id="sidebar-header">
+    <h2>Knowledge Map</h2>
+    <div id="mode-toolbar">
+
+      <!-- SCULPTOR 🗿 -->
+      <button class="mode-btn" id="btn-sculptor" data-tip="Bildhauer">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Stone sphere -->
+          <circle cx="11" cy="14" r="6.5" fill="rgba(136,153,170,0.18)" stroke="#8899aa" stroke-width="1.2"/>
+          <!-- Stone cracks -->
+          <g class="stone-cracks" stroke="#8899aa" stroke-width="0.8" stroke-linecap="round">
+            <path d="M8.5 11.5 L10 13.5 L9 15.5"/>
+            <path d="M13 12 L12 14 L13.5 15.5"/>
+            <path d="M10.5 16 L11.5 14.5"/>
+          </g>
+          <!-- Chisel group -->
+          <g class="chisel-group" transform-origin="11 8">
+            <!-- Grip -->
+            <rect x="10.1" y="2" width="1.8" height="6" rx="0.7" fill="#8899aa"/>
+            <!-- Blade -->
+            <path d="M9 8 L13 8 L12.2 10.5 L9.8 10.5 Z" fill="#a89070"/>
+            <!-- Blade edge glint -->
+            <line x1="9.2" y1="10.2" x2="12.8" y2="10.2" stroke="rgba(255,220,160,0.6)" stroke-width="0.7"/>
+          </g>
+        </svg>
+      </button>
+
+      <!-- AXE 🪓 (hidden until sculptor active) -->
+      <button class="mode-btn" id="btn-axe" data-tip="Axt">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g class="axe-group" transform-origin="11 11">
+            <!-- Handle -->
+            <path d="M14 4 Q12.5 11 11 19" stroke="#cc6644" stroke-width="1.6" stroke-linecap="round"/>
+            <!-- Blade crescent -->
+            <path d="M14 4 Q18 7 17 12 Q15 14 11.5 12 Q13.5 8.5 14 4Z" fill="rgba(200,60,40,0.25)" stroke="#cc4444" stroke-width="1.3"/>
+            <!-- Blade inner edge -->
+            <path d="M14 4.5 Q16.5 7.5 15.5 11.5" stroke="rgba(255,140,100,0.5)" stroke-width="0.8"/>
+          </g>
+          <!-- Blood drop -->
+          <g class="axe-drop" transform-origin="11 17">
+            <path d="M11 16 Q9.5 18 10.5 19.5 Q11 20.2 11.5 19.5 Q12.5 18 11 16Z" fill="#e74c3c"/>
+          </g>
+        </svg>
+      </button>
+
+      <!-- BLOODLINE 🩸 -->
+      <button class="mode-btn" id="btn-blood" data-tip="Bloodline">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Left node -->
+          <circle cx="3.5" cy="11" r="2.2" fill="rgba(200,40,40,0.3)" stroke="#cc3333" stroke-width="1.1"/>
+          <!-- Right node -->
+          <circle cx="18.5" cy="11" r="2.2" fill="rgba(200,40,40,0.3)" stroke="#cc3333" stroke-width="1.1"/>
+          <!-- Pulse line -->
+          <path class="bl-line" d="M5.7 11 Q7 11 8 11 L9.5 11" stroke="#cc3333" stroke-width="1.3" stroke-linecap="round"/>
+          <!-- EKG spike -->
+          <path class="bl-spike" d="M9.5 11 L10.5 7.5 L11.5 14.5 L12.5 11" stroke="#e74c3c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- Line after spike -->
+          <path class="bl-line" d="M12.5 11 L14 11 Q15.5 11 16.3 11" stroke="#cc3333" stroke-width="1.3" stroke-linecap="round"/>
+          <!-- Drop on spike -->
+          <path d="M11 14.5 Q10.2 16 10.7 17 Q11 17.5 11.3 17 Q11.8 16 11 14.5Z" fill="#e74c3c" opacity="0.85"/>
+        </svg>
+      </button>
+
+      <!-- WATCH 👁 -->
+      <button class="mode-btn" id="btn-watch" data-tip="Watch">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Eye outline (mandel) -->
+          <g class="eye-lid">
+            <path d="M2 11 Q11 3.5 20 11 Q11 18.5 2 11Z" fill="rgba(0,180,160,0.1)" stroke="#00bca8" stroke-width="1.2" stroke-linejoin="round"/>
+          </g>
+          <!-- Iris rays -->
+          <g class="eye-iris" stroke="rgba(0,200,180,0.5)" stroke-width="0.7" stroke-linecap="round">
+            <line x1="11" y1="7.2" x2="11" y2="8.5"/>
+            <line x1="11" y1="13.5" x2="11" y2="14.8"/>
+            <line x1="7.2" y1="11" x2="8.5" y2="11"/>
+            <line x1="13.5" y1="11" x2="14.8" y2="11"/>
+            <line x1="8.5" y1="8.5" x2="9.4" y2="9.4"/>
+            <line x1="12.6" y1="12.6" x2="13.5" y2="13.5"/>
+            <line x1="13.5" y1="8.5" x2="12.6" y2="9.4"/>
+            <line x1="8.5" y1="13.5" x2="9.4" y2="12.6"/>
+          </g>
+          <!-- Iris ring -->
+          <circle cx="11" cy="11" r="2.8" fill="none" stroke="rgba(0,220,200,0.45)" stroke-width="0.9"/>
+          <!-- Pupil -->
+          <circle class="eye-pupil" cx="11" cy="11" r="1.5" fill="rgba(0,220,200,0.7)"/>
+          <!-- Highlight -->
+          <circle cx="12" cy="10" r="0.5" fill="rgba(255,255,255,0.55)"/>
+          <!-- Lashes top -->
+          <g stroke="rgba(0,180,160,0.4)" stroke-width="0.7" stroke-linecap="round">
+            <line x1="7" y1="7.8" x2="6.3" y2="6.8"/>
+            <line x1="11" y1="6.5" x2="11" y2="5.3"/>
+            <line x1="15" y1="7.8" x2="15.7" y2="6.8"/>
+          </g>
+        </svg>
+        <div class="watch-indicator" id="watch-indicator">👁</div>
+      </button>
+
+    </div>
+    <div id="stats">0 / 0 known</div>
+  </div>
+  <div id="search-wrap">
+    <input id="search-input" type="text" placeholder="🔍 Search nodes..." autocomplete="off" spellcheck="false">
+    <button id="search-clear">×</button>
+    <div id="search-results"></div>
+  </div>
+  <div id="tree"></div>
+  <div id="bloodline-section" style="display:none;">
+    <div class="bl-header">🩸 My Bloodlines</div>
+    <div id="bloodline-list"></div>
+  </div>
+</div>
+
+<!-- BLOODLINE ADD BUTTON -->
+<button id="bloodline-add-btn" title="Draw bloodline from this node">🩸</button>
+
+<!-- GRAPH -->
+<div id="graph-wrap">
+  <div id="title">Transhuman Enhancement Roadmap</div>
+  <div id="controls">Left drag: rotate &nbsp;|&nbsp; Scroll: zoom &nbsp;|&nbsp; Click: focus &nbsp;|&nbsp; Click again: article &nbsp;|&nbsp; ESC: back</div>
+  <div id="group-legend">
+    <span class="gl-item" style="--gc:#3498db">🔵 Gerät</span>
+    <span class="gl-item" style="--gc:#9b59b6">🟣 Resource</span>
+    <span class="gl-item" style="--gc:#e67e22">🔶 Theorie</span>
+    <span class="gl-item" style="--gc:#e74c3c">🔴 Problem</span>
+    <span class="gl-item" style="--gc:#27ae60">🟢 Mechanismus</span>
+    <span class="gl-item" style="--gc:#95a5a6">⚪ Methode</span>
+  </div>
+  <div id="graph"></div>
+
+  <!-- VOTING PANEL -->
+  <div id="vote-panel">
+    <span class="vote-label" id="vote-node-label"></span>
+    <button class="vote-btn downvote" onclick="castVote(-1)" title="Downvote">&#128078;</button>
+    <span class="vote-count" id="vote-count">0</span>
+    <button class="vote-btn upvote" onclick="castVote(1)" title="Upvote">&#128077;</button>
+  </div>
+
+  <!-- NODE BADGES (DIY/BUY/R&D) -->
+  <div id="node-badges"></div>
+
+  <!-- INSTITUTION TAGS (IBM Carbon Style) -->
+  <div id="inst-tags"></div>
+
+  <!-- PROXIMITY LABELS (closest 3 nodes) -->
+  <div id="proximity-labels">
+    <div class="prox-label" id="prox-0"><div class="p-eye">👁</div><div class="p-name"></div><div class="p-cat"></div></div>
+    <div class="prox-label" id="prox-1"><div class="p-eye">👁</div><div class="p-name"></div><div class="p-cat"></div></div>
+    <div class="prox-label" id="prox-2"><div class="p-eye">👁</div><div class="p-name"></div><div class="p-cat"></div></div>
+  </div>
+
+  <!-- CONNECTION LABELS (neighbors of selected node, max 8) -->
+  <div id="connection-labels">
+    <div class="conn-label" id="conn-0"><div class="c-name"></div><div class="c-cat"></div></div>
+    <div class="conn-label" id="conn-1"><div class="c-name"></div><div class="c-cat"></div></div>
+    <div class="conn-label" id="conn-2"><div class="c-name"></div><div class="c-cat"></div></div>
+    <div class="conn-label" id="conn-3"><div class="c-name"></div><div class="c-cat"></div></div>
+    <div class="conn-label" id="conn-4"><div class="c-name"></div><div class="c-cat"></div></div>
+    <div class="conn-label" id="conn-5"><div class="c-name"></div><div class="c-cat"></div></div>
+    <div class="conn-label" id="conn-6"><div class="c-name"></div><div class="c-cat"></div></div>
+    <div class="conn-label" id="conn-7"><div class="c-name"></div><div class="c-cat"></div></div>
+  </div>
+
+  <!-- NODE EYE OVERLAY (for Watch mode) -->
+  <div id="node-eye-overlay">
+    <div class="node-eye" id="node-eye">👁</div>
+  </div>
+
+  <!-- WIKI PANEL -->
+  <div id="wiki-overlay">
+    <div id="wiki-backdrop"></div>
+    <div id="wiki-panel">
+      <div id="wiki-panel-header">
+        <div>
+          <div class="wp-cat" id="wp-cat"></div>
+          <div class="wp-title" id="wp-title"></div>
+        </div>
+        <button id="wiki-close">✕</button>
+      </div>
+      <div id="wiki-body">
+        <div id="wiki-loading">Loading…</div>
+        <img id="wiki-thumb" style="display:none">
+        <div id="wiki-extract"></div>
+      </div>
+      <div id="wiki-footer">
+        <a id="wiki-link" href="#" target="_blank">↗ Wikipedia</a>
+        <a id="db-link" href="#" target="_blank" style="display:none;">🧬 GenBank</a>
+        <a id="pubmed-link" href="#" target="_blank" style="display:none;">📚 PubMed</a>
+        <span id="wiki-hint">ESC or double-click outside to close</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2D MAP OVERLAY -->
+<div id="map2d-overlay">
+  <div id="map2d-backdrop"></div>
+  <div id="map2d-panel">
+    <div id="map2d-header">
+      <div>
+        <div id="map2d-title">Deep Brain Stimulation</div>
+        <div id="map2d-subtitle">Cross-Zone: Neural Augmentation ↔ Cognitive Enhancement</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button id="map2d-add-btn" title="Add entry to this map" onclick="openCommunityModal()" style="background:linear-gradient(135deg,rgba(241,196,15,0.2),rgba(230,126,34,0.2));border:1px solid rgba(241,196,15,0.4);color:#f1c40f;border-radius:50%;width:26px;height:26px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;">+</button>
+        <button id="map2d-close">✕</button>
+      </div>
+    </div>
+    <div id="map2d-body"></div>
+  </div>
+</div>
+
+<div id="tooltip">
+  <div class="t-label"></div>
+  <div class="t-cat"></div>
+  <div class="t-status"></div>
+</div>
+
+<script src="https://unpkg.com/three@0.155.0/build/three.min.js"></script>
+<script src="https://unpkg.com/3d-force-graph@1.73.0/dist/3d-force-graph.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+// Firefox/WebGL compatibility check
+const isWebGLSupported = (() => {
+  try {
+    const canvas = document.createElement('canvas');
+    return !!(window.WebGLRenderingContext && (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+  } catch(e) { return false; }
+})();
+
+if (!isWebGLSupported) {
+  document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#fff;font-family:sans-serif;"><h2>WebGL Required</h2><p>Please enable WebGL in your browser or use Chrome/Edge.</p><p>Firefox: type <code>about:config</code> and set <code>webgl.disabled</code> to <code>false</code></p></div>';
+}
+
+// ── SUPABASE AUTH + DB ───────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://izsfximpstxuypvyhimw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6c2Z4aW1wc3R4dXlwdnloaW13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5MjgyMjgsImV4cCI6MjA5NjUwNDIyOH0.iYtKmvCFqGvc2L8wgVUdKekClXpom18FdRRfCBs70e0';
+let sbClient = null;
+try {
+  if (window.supabase && window.supabase.createClient) {
+    sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+} catch(e) { console.warn('Supabase init failed:', e); }
+
+let currentUser = null;
+
+async function initAuth() {
+  if (!sbClient) { console.warn('Supabase not available, running in offline mode'); return; }
+  try {
+    // Initial check - wait a bit for Supabase to process OAuth hash
+    await new Promise(r => setTimeout(r, 300));
+    
+    const { data: { session } } = await sbClient.auth.getSession();
+    if (session) {
+      currentUser = session.user;
+      hideLoginOverlay();
+      updateAuthUI();
+      await syncVotesFromDB();
+      await syncBloodlinesFromDB();
+    } else {
+      showLoginOverlay();
+    }
+    
+    // Clean URL if OAuth redirect
+    if (window.location.hash.includes('access_token')) {
+      history.replaceState(null, '', window.location.pathname);
+    }
+
+    // Simple polling: check session every 2 seconds
+    // This is bulletproof vs timing issues with onAuthStateChange
+    let lastUserId = currentUser?.id || null;
+    setInterval(async () => {
+      try {
+        const { data: { session } } = await sbClient.auth.getSession();
+        const newUserId = session?.user?.id || null;
+        
+        if (newUserId === lastUserId) return; // No change
+        
+        lastUserId = newUserId;
+        
+        if (session) {
+          currentUser = session.user;
+          hideLoginOverlay();
+          updateAuthUI();
+          if (!lastUserId) {
+            await syncVotesFromDB();
+            await syncBloodlinesFromDB();
+          }
+        } else {
+          currentUser = null;
+          updateAuthUI();
+          showLoginOverlay();
+        }
+      } catch(e) {}
+    }, 2000);
+
+  } catch(e) { console.warn('Auth init failed:', e); }
+}
+
+function showLoginOverlay() {
+  if (document.getElementById('auth-overlay')) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'auth-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(5,5,16,0.92);z-index:99999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);';
+  overlay.innerHTML = `
+    <div style="background:rgba(15,12,30,0.98);border:1px solid rgba(120,80,255,0.3);border-radius:16px;padding:32px 40px;max-width:380px;width:90%;text-align:center;">
+      <h2 style="color:#fff;font-size:18px;margin-bottom:4px;">Knowledge Map</h2>
+      <p style="color:rgba(255,255,255,0.4);font-size:11px;margin-bottom:24px;">Sign in to save votes & entries across devices</p>
+      <button id="auth-github" style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:#fff;font-size:13px;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        Continue with GitHub
+      </button>
+      <button id="auth-google" style="width:100%;padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.06);color:#fff;font-size:13px;cursor:pointer;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+      <div style="position:relative;margin:16px 0;"><div style="border-top:1px solid rgba(255,255,255,0.1);"></div><span style="position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:rgba(15,12,30,0.98);padding:0 12px;font-size:10px;color:rgba(255,255,255,0.3);">or</span></div>
+      <button id="auth-skip" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:rgba(255,255,255,0.35);font-size:11px;cursor:pointer;transition:all 0.2s;">
+        Continue without account (local only)
+      </button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  document.getElementById('auth-github').onmouseover = function() { this.style.background = 'rgba(255,255,255,0.12)'; };
+  document.getElementById('auth-github').onmouseout = function() { this.style.background = 'rgba(255,255,255,0.06)'; };
+  document.getElementById('auth-google').onmouseover = function() { this.style.background = 'rgba(255,255,255,0.12)'; };
+  document.getElementById('auth-google').onmouseout = function() { this.style.background = 'rgba(255,255,255,0.06)'; };
+
+  document.getElementById('auth-github').onclick = () => signInWith('github');
+  document.getElementById('auth-google').onclick = () => signInWith('google');
+  document.getElementById('auth-skip').onclick = () => hideLoginOverlay();
+}
+
+function hideLoginOverlay() {
+  const overlay = document.getElementById('auth-overlay');
+  if (overlay) overlay.remove();
+  // Also remove any auth menus
+  document.querySelectorAll('.auth-menu').forEach(m => m.remove());
+}
+
+async function signInWith(provider) {
+  if (!sbClient) { alert('Auth not available offline. Use http://localhost:8080'); return; }
+  const { error } = await sbClient.auth.signInWithOAuth({
+    provider,
+    options: { redirectTo: window.location.href }
+  });
+  if (error) console.error('Auth error:', error.message);
+}
+
+async function signOut() {
+  if (!sbClient) return;
+  await sbClient.auth.signOut();
+  currentUser = null;
+  updateAuthUI();
+}
+
+function updateAuthUI() {
+  let badge = document.getElementById('auth-badge');
+  if (!badge) {
+    badge = document.createElement('div');
+    badge.id = 'auth-badge';
+    badge.style.cssText = 'display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:10px;cursor:pointer;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);transition:all 0.2s;margin-left:auto;flex-shrink:0;';
+    badge.onmouseover = function() { this.style.background = 'rgba(255,255,255,0.08)'; };
+    badge.onmouseout = function() { this.style.background = 'rgba(255,255,255,0.04)'; };
+    // Insert into sidebar-header, or create a slot for it
+    const sidebarHeader = document.getElementById('sidebar-header');
+    if (sidebarHeader) {
+      sidebarHeader.style.display = 'flex';
+      sidebarHeader.style.alignItems = 'center';
+      sidebarHeader.style.flexWrap = 'wrap';
+      sidebarHeader.appendChild(badge);
+    } else {
+      // Fallback: fixed top-right of sidebar area
+      badge.style.cssText = 'position:fixed;top:10px;right:10px;display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:10px;cursor:pointer;z-index:200;border:1px solid rgba(255,255,255,0.12);background:rgba(8,6,22,0.85);backdrop-filter:blur(8px);transition:all 0.2s;';
+      document.body.appendChild(badge);
+    }
+  }
+  if (currentUser) {
+    const name = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'User';
+    const avatar = currentUser.user_metadata?.avatar_url || '';
+    badge.innerHTML = avatar
+      ? `<img src="${avatar}" style="width:18px;height:18px;border-radius:50%;">`
+      : `<span style="width:18px;height:18px;border-radius:50%;background:rgba(120,80,255,0.4);display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;">${name[0].toUpperCase()}</span>`;
+    badge.innerHTML += `<span style="color:rgba(255,255,255,0.6);">${name}</span>`;
+    badge.onclick = showAuthMenu;
+    badge.title = 'Click for menu';
+  } else {
+    badge.innerHTML = '<span style="color:rgba(255,255,255,0.35);">Guest</span>';
+    badge.onclick = showLoginOverlay;
+    badge.title = 'Click to sign in';
+  }
+}
+
+// Show auth dropdown menu
+function showAuthMenu(e) {
+  e.stopPropagation();
+  
+  // Remove existing menu
+  document.querySelectorAll('.auth-menu').forEach(m => m.remove());
+  
+  const badge = document.getElementById('auth-badge');
+  const rect = badge.getBoundingClientRect();
+  
+  const menu = document.createElement('div');
+  menu.className = 'auth-menu';
+  menu.style.cssText = `position:fixed;top:${rect.bottom + 6}px;left:${rect.left}px;background:rgba(15,12,30,0.98);border:1px solid rgba(241,196,15,0.3);border-radius:12px;padding:8px;z-index:10000;min-width:180px;box-shadow:0 10px 40px rgba(0,0,0,0.6);animation:menuIn 0.2s ease;backdrop-filter:blur(12px);`;
+  
+  const name = currentUser?.user_metadata?.full_name || currentUser?.email?.split('@')[0] || 'User';
+  
+  menu.innerHTML = `
+    <div style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:8px;">
+      <div style="font-size:11px;color:#f1c40f;font-weight:600;">${name}</div>
+      <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:2px;">${currentUser?.email || ''}</div>
+    </div>
+    <button class="auth-menu-item" data-action="profile" style="width:100%;padding:8px 12px;border:none;background:transparent;color:rgba(255,255,255,0.8);font-size:11px;text-align:left;cursor:pointer;border-radius:6px;display:flex;align-items:center;gap:8px;">
+      <span>👤</span> Profile
+    </button>
+    <button class="auth-menu-item" data-action="sync" style="width:100%;padding:8px 12px;border:none;background:transparent;color:rgba(255,255,255,0.8);font-size:11px;text-align:left;cursor:pointer;border-radius:6px;display:flex;align-items:center;gap:8px;">
+      <span>🔄</span> Sync Now
+    </button>
+    <div style="border-top:1px solid rgba(255,255,255,0.1);margin:8px 0;"></div>
+    <button class="auth-menu-item" data-action="logout" style="width:100%;padding:8px 12px;border:none;background:transparent;color:#e74c3c;font-size:11px;text-align:left;cursor:pointer;border-radius:6px;display:flex;align-items:center;gap:8px;">
+      <span>🚪</span> Sign Out
+    </button>
+  `;
+  
+  document.body.appendChild(menu);
+  
+  // Handle clicks
+  menu.querySelectorAll('.auth-menu-item').forEach(btn => {
+    btn.onmouseover = function() { this.style.background = 'rgba(255,255,255,0.1)'; };
+    btn.onmouseout = function() { this.style.background = 'transparent'; };
+    btn.onclick = () => {
+      const action = btn.dataset.action;
+      menu.remove();
+      if (action === 'logout') signOut();
+      else if (action === 'sync') { syncVotesFromDB(); syncBloodlinesFromDB(); alert('Synced!'); }
+      else if (action === 'profile') alert('Profile page coming soon!');
+    };
+  });
+  
+  // Close on outside click
+  setTimeout(() => {
+    document.addEventListener('click', function closeMenu(e) {
+      if (!menu.contains(e.target)) {
+        menu.remove();
+        document.removeEventListener('click', closeMenu);
+      }
+    });
+  }, 10);
+}
+
+// Sync votes from DB → merge with localStorage
+async function syncVotesFromDB() {
+  if (!sbClient || !currentUser) return;
+  try {
+    // Load user's votes from Supabase
+    const { data, error } = await sbClient
+      .from('mindmap_votes')
+      .select('node_id, vote')
+      .eq('user_id', currentUser.id);
+    if (error) { console.error('Vote sync error:', error); return; }
+
+    // Merge: DB wins over localStorage for logged-in users
+    if (data && data.length > 0) {
+      data.forEach(v => { nodeVotes[v.node_id] = v.vote; });
+      saveVotes();
+    } else {
+      // First login: push localStorage votes to DB
+      const localVotes = Object.entries(nodeVotes);
+      for (const [nodeId, vote] of localVotes) {
+        if (vote !== 0) {
+          await sbClient.from('mindmap_votes').upsert({
+            user_id: currentUser.id,
+            node_id: nodeId,
+            vote: vote,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id,node_id' });
+        }
+      }
+    }
+
+    // Load aggregated totals for color ripening
+    const { data: totals } = await sbClient.from('mindmap_vote_totals').select('*');
+    if (totals) {
+      window._voteTotals = {};
+      totals.forEach(t => { window._voteTotals[t.node_id] = Number(t.total_votes); });
+    }
+  } catch (e) { console.error('Sync failed:', e); }
+}
+
+// Push single vote to DB
+async function pushVoteToDB(nodeId, vote) {
+  if (!sbClient || !currentUser) return;
+  try {
+    await sbClient.from('mindmap_votes').upsert({
+      user_id: currentUser.id,
+      node_id: nodeId,
+      vote: vote,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id,node_id' });
+  } catch (e) { console.error('Vote push failed:', e); }
+}
+
+// Push community entry to DB
+async function pushEntryToDB(entry) {
+  if (!sbClient || !currentUser) return;
+  try {
+    await sbClient.from('mindmap_entries').insert({
+      user_id: currentUser.id,
+      node_id: entry.nodeId,
+      entry_type: entry.type,
+      title: entry.title,
+      url: entry.url || null,
+      description: entry.desc || null,
+      files: entry.files || []
+    });
+  } catch (e) { console.error('Entry push failed:', e); }
+}
+
+// Init auth on page load
+initAuth();
+
+// ── DATA v2 ───────────────────────────────────────────────────────────────────
+// Node colors by type:
+// #c0392b = Gap/Missing (red)  #8e44ad = Infinite Life center (purple)
+// #2980b9 = Bio Replacement    #16a085 = Neural Autonomy
+// #d35400 = Cognitive Enhance  #f39c12 = MC (orange)  #7f8c8d = tried/failed
+
+const TREE = [
+  {
+    id:"bp", label:"🫀 Biological Replacement & Preservation", color:"#2980b9", children:[
+      { id:"bp_organ", label:"Synthetic Organ Engineering", color:"#2980b9", children:[
+        {id:"bp_heart", label:"Bioartificial Heart", color:"#2980b9"},
+        {id:"bp_kidney", label:"Kidney-on-a-Chip", color:"#2980b9"},
+        {id:"bp_liver", label:"Liver Organoid Transplant", color:"#2980b9"},
+        {id:"bp_lung", label:"Decellularized Lung Scaffold", color:"#2980b9"},
+        {id:"bp_xeno", label:"Xenotransplantation (pig→human)", color:"#7f8c8d"},
+      ]},
+      { id:"bp_cryo", label:"Cryopreservation", color:"#2980b9", children:[
+        {id:"bp_vitrify", label:"Vitrification Protocol", color:"#2980b9"},
+        {id:"bp_cryo_neuro", label:"Neural Tissue Cryopreservation", color:"#c0392b"},
+        {id:"bp_alcor", label:"Alcor / Cryonics Institute", color:"#2980b9"},
+      ]},
+      { id:"bp_regen", label:"Regenerative Medicine", color:"#2980b9", children:[
+        {id:"bp_stem", label:"Pluripotent Stem Cells (iPSC)", color:"#2980b9"},
+        {id:"bp_yamanaka", label:"Yamanaka Factors (OSKM)", color:"#2980b9", children:[
+          {id:"bp_osk_aav", label:"ER-100 (AAV-OSK Gene Therapy)", color:"#2980b9"},
+          {id:"bp_oskm_crispr", label:"OSKM CRISPR Activation", color:"#2980b9"},
+          {id:"bp_partial", label:"Partial Reprogramming (transient)", color:"#2980b9"},
+        ]},
+        {id:"bp_exo", label:"Exosome Therapy", color:"#2980b9"},
+        {id:"bp_sen", label:"Senolytics", color:"#2980b9", children:[
+          {id:"bp_sen_dasatinib", label:"Dasatinib + Quercetin (D+Q)", color:"#2980b9"},
+          {id:"bp_sen_fisetin", label:"Fisetin", color:"#2980b9"},
+        ]},
+        {id:"bp_telomerase", label:"Telomerase Activation", color:"#2980b9"},
+        {id:"bp_epigenetic", label:"Epigenetic Reprogramming", color:"#2980b9"},
+        {id:"bp_gdf", label:"GDF11 / Klotho / Follistatin", color:"#2980b9"},
+        {id:"bp_mito", label:"Mitochondrial Transfer", color:"#2980b9"},
+        {id:"bp_rap", label:"Rapamycin / mTOR Pathway", color:"#2980b9"},
+        {id:"bp_altos", label:"Altos Labs / Calico", color:"#2980b9"},
+        {id:"bp_bacillus_f", label:"🦠 Bacillus cereus Strain F (Permafrost)", color:"#2980b9"},
+      ]},
+      { id:"bp_aging", label:"🧬 Aging Mechanisms (Problem Theories)", color:"#1e8449", children:[
+        { id:"ag_iit", label:"Information Theory of Aging (Sinclair)", color:"#1e8449", children:[
+          {id:"ag_epigenome", label:"Epigenome as Backup Drive", color:"#1e8449"},
+          {id:"ag_osk", label:"OSK Partial Reprogramming", color:"#1e8449"},
+          {id:"ag_dnoise", label:"DNA Damage Noise (epigenetic scrambling)", color:"#1e8449"},
+        ]},
+        { id:"ag_hallmarks", label:"9 Hallmarks of Aging (Lopez-Otin)", color:"#1e8449", children:[
+          {id:"ag_genomic", label:"Genomic Instability", color:"#c0392b"},
+          {id:"ag_telomere", label:"Telomere Attrition", color:"#c0392b"},
+          {id:"ag_epimut", label:"Epigenetic Alterations", color:"#c0392b"},
+          {id:"ag_proteostasis", label:"Loss of Proteostasis", color:"#c0392b"},
+          {id:"ag_nutrient", label:"Deregulated Nutrient Sensing (mTOR/AMPK/Sirtuins)", color:"#1e8449"},
+          {id:"ag_mito", label:"Mitochondrial Dysfunction", color:"#c0392b"},
+          {id:"ag_senescence", label:"Cellular Senescence (zombie cells)", color:"#c0392b"},
+          {id:"ag_stemex", label:"Stem Cell Exhaustion", color:"#c0392b"},
+          {id:"ag_intercomm", label:"Altered Intercellular Communication", color:"#c0392b"},
+        ]},
+        { id:"ag_new_hallmarks", label:"New Hallmarks 2023", color:"#1e8449", children:[
+          {id:"ag_autophagy", label:"Disabled Macroautophagy", color:"#c0392b"},
+          {id:"ag_dysbiosis", label:"Dysbiosis (Microbiome Aging)", color:"#c0392b"},
+          {id:"ag_chronic_inflam", label:"Chronic Inflammation (Inflammaging)", color:"#c0392b"},
+        ]},
+        { id:"ag_institutes", label:"Key Aging Labs & Institutions", color:"#1e8449", children:[
+          {id:"ag_sinclair", label:"David Sinclair Lab (Harvard)", color:"#1e8449"},
+          {id:"ag_altos", label:"Altos Labs (Shinya Yamanaka)", color:"#1e8449"},
+          {id:"ag_calico", label:"Calico (Google)", color:"#1e8449"},
+          {id:"ag_lifespan_io", label:"Lifespan.io", color:"#1e8449"},
+          {id:"ag_nobel_2012", label:"Nobel Prize 2012 (Yamanaka / Gurdon)", color:"#1e8449"},
+        ]},
+        { id:"ag_gaps", label:"⚠️ Gaps — Aging", color:"#c0392b", children:[
+          {id:"gap_ag_clock", label:"❓ Unified Aging Clock (multi-omics)", color:"#c0392b"},
+          {id:"gap_ag_reversal", label:"❓ Safe Full Epigenetic Reversal in vivo", color:"#c0392b"},
+          {id:"gap_ag_osk_trial", label:"⚠️ OSK Human Clinical Trial (pending)", color:"#7f8c8d"},
+        ]},
+      ]},
+      { id:"bp_gaps", label:"⚠️ Gaps — Biological", color:"#c0392b", children:[
+        {id:"gap_cryo_EM", label:"💸 Cryo-EM Microscope ($2M+)", color:"#c0392b"},
+        {id:"gap_vascular", label:"❓ Synthetic Organ Vascularization", color:"#c0392b"},
+        {id:"gap_xeno_fail", label:"⚠️ Xenotransplantation (immune rejection)", color:"#7f8c8d"},
+      ]},
+    ]
+  },
+  {
+    id:"na", label:"🧠 Neural Autonomy", color:"#16a085", children:[
+      { id:"na_bci", label:"Brain-Computer Interface", color:"#16a085", children:[
+        {id:"na_neuralink", label:"Neuralink N1 Chip", color:"#16a085"},
+        {id:"na_synchron", label:"Synchron Stentrode", color:"#16a085"},
+        {id:"na_blackrock", label:"Blackrock Neurotech", color:"#16a085"},
+        {id:"na_neuraldust", label:"Neural Dust (UC Berkeley)", color:"#16a085"},
+        {id:"na_endovascular", label:"Endovascular BCI", color:"#16a085"},
+        {id:"na_optogenetics", label:"Optogenetic BCI", color:"#16a085"},
+        {id:"na_closedloop", label:"Closed-Loop Neurostim", color:"#16a085"},
+        {id:"na_spike", label:"Spike Sorting Algorithms", color:"#16a085"},
+        {id:"na_bmi", label:"BMI Signal Decoding", color:"#16a085"},
+        {id:"na_darpa", label:"DARPA N3 Program", color:"#16a085"},
+      ]},
+      { id:"na_rec", label:"Receptor & Trigger Engineering", color:"#16a085", children:[
+        {id:"na_dreads", label:"Chemogenetics (DREADDs)", color:"#16a085"},
+        {id:"na_electroceutical", label:"Electroceuticals", color:"#16a085"},
+        {id:"na_flexprobe", label:"Flexible Neural Probes", color:"#16a085"},
+        {id:"na_mxene", label:"MXene Neural Interface Materials", color:"#16a085"},
+      ]},
+      { id:"na_gaps", label:"⚠️ Gaps — Neural", color:"#c0392b", children:[
+        {id:"gap_cleanroom", label:"💸 Cleanroom for Neural Nanofab ($500k+)", color:"#c0392b"},
+        {id:"gap_consciousness", label:"❓ Consciousness Transfer Protocol", color:"#c0392b"},
+        {id:"gap_wbe", label:"⚠️ Whole Brain Emulation (attempted, unsolved)", color:"#7f8c8d"},
+      ]},
+    ]
+  },
+  {
+    id:"ce", label:"� Cognitive Enhancement", color:"#d35400", children:[
+      { id:"ce_neu", label:"Neuroplasticity Research", color:"#d35400", children:[
+        {id:"ce_fus", label:"Focused Ultrasound Neuromodulation", color:"#d35400"},
+        {id:"ce_tdcs", label:"tDCS / rTMS", color:"#d35400"},
+        {id:"ce_photo", label:"Transcranial Photobiomodulation", color:"#d35400"},
+        {id:"ce_ltp", label:"LTP - Long-Term Potentiation", color:"#d35400"},
+        {id:"ce_glymph", label:"Glymphatic System Clearance", color:"#d35400"},
+        {id:"ce_neuroinflam", label:"Neuroinflammation Biomarkers", color:"#d35400"},
+      ]},
+      { id:"ce_mem", label:"Memory & Encoding", color:"#d35400", children:[
+        {id:"ce_organoid", label:"Hippocampal Organoids", color:"#d35400"},
+        {id:"ce_synaptic", label:"Synaptic Proteomics", color:"#d35400"},
+        {id:"ce_cortical", label:"Cortical Decoding Algorithms", color:"#d35400"},
+        {id:"ce_invivo_crispr", label:"In-vivo CRISPR Brain Delivery", color:"#d35400"},
+      ]},
+      { id:"ce_gaps", label:"⚠️ Gaps — Cognitive", color:"#c0392b", children:[
+        {id:"gap_seq", label:"💸 Single-Cell Sequencing Equipment ($15k+)", color:"#c0392b"},
+        {id:"gap_longterm", label:"❓ Long-term Neural Stability In-vivo", color:"#c0392b"},
+        {id:"gap_crispr_fail", label:"⚠️ CRISPR Germline (controversial halt)", color:"#7f8c8d"},
+      ]},
+    ]
+  },
+  {
+    id:"mc", label:"⚙️ Microcosmic Construction", color:"#f39c12", children:[
+      { id:"mc_nano", label:"Nanorobotics", color:"#f39c12", children:[
+        {id:"mc_dna_orig", label:"DNA Origami Machines", color:"#f39c12"},
+        {id:"mc_molmotor", label:"Molecular Motors", color:"#f39c12"},
+        {id:"mc_nanobot", label:"Medical Nanobots (in-vivo)", color:"#f39c12"},
+      ]},
+      { id:"mc_fab", label:"Microfabrication", color:"#f39c12", children:[
+        {id:"mc_mems", label:"MEMS / BioMEMS", color:"#f39c12"},
+        {id:"mc_lab_chip", label:"Lab-on-a-Chip", color:"#f39c12"},
+        {id:"mc_microfluid", label:"Microfluidics", color:"#f39c12"},
+        {id:"mc_photonic", label:"Photonic Chips (neural)", color:"#f39c12"},
+      ]},
+      { id:"mc_optics", label:"Bio-Optics & Imaging", color:"#f39c12", children:[
+        {id:"mc_optogen", label:"Optogenetics (light-control)", color:"#f39c12"},
+        {id:"mc_lightsheet", label:"Light-Sheet Microscopy", color:"#f39c12"},
+        {id:"mc_cryo_opt", label:"Cryo-Optical Correlative Imaging", color:"#f39c12"},
+      ]},
+      { id:"mc_synbio", label:"Synthetic Biology Circuits", color:"#f39c12", children:[
+        {id:"mc_dna_store", label:"DNA Data Storage", color:"#f39c12"},
+        {id:"mc_genecircuit", label:"Genetic Logic Gates", color:"#f39c12"},
+        {id:"mc_celleng", label:"Cell Engineering Platforms", color:"#f39c12"},
+      ]},
+      { id:"mc_clone_neuro", label:"⚙️ MC: Neuro-Clone", color:"#f39c12", children:[] },
+      { id:"mc_clone_cryo", label:"⚙️ MC: Cryo-Clone", color:"#f39c12", children:[] },
+    ]
+  },
+];
+
+// ── NODE GROUP SYSTEM ─────────────────────────────────────────────────────────
+// Node-Typ bestimmt Kugelfarbe. Hauptgruppe (bp/na/ce/mc) bestimmt nur Raumposition.
+const GROUP_COLORS = {
+  device:    '#3498db',  // blau  – Gerät
+  resource:  '#9b59b6',  // lila  – Special Resource
+  theory:    '#e67e22',  // amber – Theorie
+  problem:   '#e74c3c',  // rot   – Problemtheorie
+  mechanism: '#27ae60',  // grün  – Mechanismus/Theoret. Methode
+  method:    '#b0bec5',  // grau  – Methode/Operation/Projekt
+  crosslink: '#f1c40f',  // gold  – Cross-Link / Between-Group
+};
+
+const GROUP_MAP = {
+  // Devices
+  dbs_stereoframe:'device', dbs_burrhole:'device', dbs_cannula:'device',
+  dbs_ptir:'device', dbs_tungsten:'device', dbs_steel:'device',
+  dbs_glass:'device', dbs_multicontact:'device', dbs_fiber_optic:'device',
+  dbs_polyimide:'device', dbs_7tmri:'device', dbs_squid:'device',
+  dbs_iomri:'device', dbs_fhc:'device', dbs_wpi:'device',
+  dbs_sutter:'device', dbs_narishige:'device', dbs_neuralynx:'device',
+  // Special Resources
+  dbs_parylene:'resource', dbs_porcine:'resource', dbs_phantom:'resource',
+  bp_gdf:'resource', bp_yamanaka:'resource', bp_rap:'resource',
+  bp_altos:'resource', ag_sinclair:'resource', ag_altos:'resource',
+  ag_calico:'resource', ag_lifespan_io:'resource', ag_nobel_2012:'resource',
+  dbs_suppliers:'resource',
+  // Theories
+  ag_iit:'theory', ag_hallmarks:'theory', ag_new_hallmarks:'theory',
+  ag_epigenome:'theory', ag_dnoise:'theory',
+  dbs_actionpot:'theory', dbs_restpot:'theory', dbs_hf_paradox:'theory',
+  // Problem Theories
+  ag_genomic:'problem', ag_telomere:'problem', ag_epimut:'problem',
+  ag_proteostasis:'problem', ag_mito:'problem', ag_senescence:'problem',
+  ag_stemex:'problem', ag_intercomm:'problem', ag_autophagy:'problem',
+  ag_dysbiosis:'problem', ag_chronic_inflam:'problem',
+  bp_cryo_neuro:'problem',
+  // Mechanism Theories
+  ag_osk:'mechanism', ag_nutrient:'mechanism',
+  dbs_fus_mech:'mechanism', dbs_phased:'mechanism', dbs_kwave:'mechanism',
+  dbs_adaptive:'mechanism', dbs_stn:'mechanism', dbs_scc:'mechanism',
+  dbs_dti:'mechanism', dbs_freq:'mechanism', dbs_window:'mechanism',
+  bp_epigenetic:'mechanism', bp_stem:'mechanism', bp_sen:'mechanism',
+  bp_telomerase:'mechanism', bp_mito:'mechanism', bp_exo:'mechanism',
+  bp_bacillus_f:'mechanism',
+  // Methods / Operations
+  dbs_surgery:'method', dbs_multipass:'method', dbs_anesthesia:'method',
+  dbs_stim:'method', dbs_imaging:'method',
+  bp_organ:'method', bp_cryo:'method', bp_regen:'method',
+  bp_vitrify:'method', bp_alcor:'method',
+};
+
+function nodeGroup(id) {
+  if (id.startsWith('dbs') || id === 'na_ce_dbs') return GROUP_MAP[id] || 'crosslink';
+  return GROUP_MAP[id] || null;
+}
+
+// Flatten tree to node list
+function flattenTree(tree) {
+  const nodes = [];
+  function walk(items, depth) {
+    items.forEach(item => {
+      nodes.push({ id: item.id, label: item.label, color: item.color, depth });
+      if (item.children && item.children.length) walk(item.children, depth + 1);
+    });
+  }
+  walk(tree, 1);
+  return nodes;
+}
+
+const treeNodes = flattenTree(TREE);
+
+const sizeMap = { 0:18, 1:13, 2:9, 3:6, 4:5 };
+
+// DBS – only the main node lives in 3D; all detail data is in DBS_2D_DATA (for future 2D-map overlay)
+const DBS_NODES = [
+  { id:"na_ce_dbs", label:"🔬 Deep Brain Stimulation (DBS)", group:"crosslink", depth:1 },
+].map(n => ({ ...n, color: GROUP_COLORS[n.group] }));
+
+// ── BADGE MAP (DIY / BUY / R&D) ───────────────────────────────────────────────
+// Simple classification: can you DIY this, BUY it, or is it R&D?
+const BADGE_MAP = {
+  // DIY (equipment you can build/setup yourself)
+  dbs_burrhole:'DIY', dbs_cannula:'DIY', dbs_multipass:'DIY',
+  dbs_glass:'DIY', dbs_fiber_optic:'DIY', dbs_polyimide:'DIY',
+  dbs_stereoframe:'DIY',
+  // BUY (purchase off-the-shelf)
+  dbs_ptir:'BUY', dbs_tungsten:'BUY', dbs_steel:'BUY', dbs_multicontact:'BUY',
+  dbs_7tmri:'BUY', dbs_squid:'BUY', dbs_iomri:'BUY',
+  dbs_fhc:'BUY', dbs_wpi:'BUY', dbs_sutter:'BUY', dbs_narishige:'BUY', dbs_neuralynx:'BUY',
+  dbs_parylene:'BUY', dbs_porcine:'BUY', dbs_phantom:'BUY',
+  na_neuralink:'BUY', na_synchron:'BUY', na_blackrock:'BUY',
+  bp_alcor:'BUY', bp_altos:'BUY',
+  // Rn'D (Research n' Development - apostrophe instead of & to avoid HTML issues)
+  dbs_adaptive:"Rn'D", dbs_fus_mech:"Rn'D", dbs_phased:"Rn'D", dbs_kwave:"Rn'D",
+  dbs_stn:"Rn'D", dbs_scc:"Rn'D", dbs_window:"Rn'D",
+  dbs_dti:"Rn'D", dbs_hf_paradox:"Rn'D", dbs_actionpot:"Rn'D", dbs_restpot:"Rn'D",
+  bp_yamanaka:"Rn'D", bp_rap:"Rn'D", bp_gdf:"Rn'D", bp_mito:"Rn'D",
+  bp_bacillus_f:"Rn'D",
+  ag_osk:"Rn'D", ag_nutrient:"Rn'D", ag_epigenome:"Rn'D",
+  ag_sinclair:"Rn'D", ag_altos:"Rn'D", ag_calico:"Rn'D",
+  na_rec:"Rn'D", na_gaps:"Rn'D",
+  ce_rama:"Rn'D", ce_gan:"Rn'D", ce_gaps:"Rn'D",
+};
+
+const BADGE_COLORS = { DIY:'#27ae60', BUY:'#3498db', "Rn'D":'#e74c3c' };
+
+// ── INSTITUTION LABELS (IBM Carbon Style Tags) ────────────────────────────────
+// Main institutes/labs with Carbon Tag styling
+const INSTITUTION_LABELS = {
+  // Aging/BP Institutes
+  ag_sinclair:   { short: 'SINCLAIR', full: 'Harvard/Sinclair Lab', color: '#0f62fe', type: 'blue' },
+  ag_altos:      { short: 'ALTOS', full: 'Altos Labs', color: '#8a3ffc', type: 'purple' },
+  ag_calico:     { short: 'CALICO', full: 'Calico (Google)', color: '#4589ff', type: 'cyan' },
+  ag_lifespan_io:{ short: 'LIFESPAN', full: 'Lifespan.io', color: '#24a148', type: 'green' },
+  ag_nobel_2012: { short: 'YAMANAKA', full: 'Kyoto University', color: '#fa4d56', type: 'red' },
+  // Neural/NA Institutes  
+  na_neuralink:  { short: 'NEURALINK', full: 'Neuralink', color: '#0f62fe', type: 'blue' },
+  na_synchron:   { short: 'SYNCHRON', full: 'Synchron Inc.', color: '#8a3ffc', type: 'purple' },
+  na_blackrock:  { short: 'BLACKROCK', full: 'Blackrock Neurotech', color: '#6929c4', type: 'purple-dark' },
+  na_darpa:      { short: 'DARPA', full: 'DARPA N3', color: '#000000', type: 'high-contrast' },
+  // Cryo/BP Institutes
+  bp_alcor:      { short: 'ALCOR', full: 'Alcor Life Extension', color: '#00a1e0', type: 'cyan' },
+  bp_altos:      { short: 'ALTOS', full: 'Altos Labs', color: '#8a3ffc', type: 'purple' },
+  bp_bacillus_f: { short: 'ICBFM', full: 'Institute of Chemical Biology and Fundamental Medicine (Novosibirsk)', color: '#00a1e0', type: 'cyan' },
+};
+
+// ── DBS 2D-MAP DATA (not rendered in 3D, used when 2D-overlay opens) ───────────
+// Rule: Institute/Supplier/Setting → stays here only.
+// Nodes that ALSO exist in 3D-tree get an "arm" (cross-link) out of the 2D panel.
+const DBS_2D_DATA = {
+  id: "na_ce_dbs",
+  label: "Deep Brain Stimulation",
+  sections: [
+    { id:"dbs_surgery", label:"Surgery & Setting", type:"method", nodes:[
+      { id:"dbs_stereoframe", label:"Stereotactic Frame",           type:"device"  },
+      { id:"dbs_burrhole",   label:"Burr Hole Drilling (3–5mm)",    type:"device"  },
+      { id:"dbs_cannula",    label:"Cannula (guide tube)",           type:"device"  },
+      { id:"dbs_multipass",  label:"Multi-Pass Technique",           type:"method"  },
+      { id:"dbs_anesthesia", label:"Local Anesthesia (awake)",       type:"method"  },
+      { id:"dbs_porcine",    label:"Porcine Brain Model",            type:"resource"},
+      { id:"dbs_phantom",    label:"Tissue Phantom (agar/gelatin)",  type:"resource"},
+    ]},
+    { id:"dbs_electrodes", label:"Electrodes & Materials", type:"device", nodes:[
+      { id:"dbs_ptir",       label:"Platinum-Iridium (Gold Standard)", type:"device",  arm3d:"na_bci" },
+      { id:"dbs_tungsten",   label:"Tungsten (DIY / Acute)",           type:"device",  arm3d:"na_bci" },
+      { id:"dbs_steel",      label:"Stainless Steel (Budget)",         type:"device"  },
+      { id:"dbs_glass",      label:"Glass Micropipette",               type:"device"  },
+      { id:"dbs_parylene",   label:"Parylene-C Insulation",            type:"resource"},
+      { id:"dbs_multicontact",label:"Multi-Contact Array (16+ ch)",    type:"device"  },
+      { id:"dbs_fiber_optic",label:"Fiber-Optic Detection 880nm",      type:"device"  },
+      { id:"dbs_polyimide",  label:"Flexible Polyimide Cannula",       type:"device"  },
+    ]},
+    { id:"dbs_neuro", label:"Neurophysiology", type:"theory", nodes:[
+      { id:"dbs_actionpot",  label:"Action Potential",                 type:"theory"  },
+      { id:"dbs_restpot",    label:"Resting Potential –70mV",           type:"theory"  },
+      { id:"dbs_hf_paradox", label:"HF Stimulation Paradox",           type:"theory"  },
+      { id:"dbs_stn",        label:"Subthalamic Nucleus (Parkinson)",   type:"mechanism"},
+      { id:"dbs_scc",        label:"Subcallosal Cingulate (Depression)",type:"mechanism"},
+    ]},
+    { id:"dbs_stim", label:"Stimulation Parameters", type:"method", nodes:[
+      { id:"dbs_freq",       label:"100–200 Hz Frequency",              type:"mechanism"},
+      { id:"dbs_adaptive",   label:"Adaptive DBS (closed-loop)",        type:"mechanism", arm3d:"na_closedloop" },
+      { id:"dbs_window",     label:"Therapeutic Window",                type:"mechanism"},
+    ]},
+    { id:"dbs_imaging", label:"Imaging & Planning", type:"method", nodes:[
+      { id:"dbs_7tmri",      label:"7 Tesla MRI",                       type:"device"  },
+      { id:"dbs_dti",        label:"DTI Fiber Tract Mapping",           type:"mechanism"},
+      { id:"dbs_iomri",      label:"Intraoperative MRI / CT",           type:"device"  },
+      { id:"dbs_squid",      label:"SQUID / MEG",                       type:"device",  arm3d:"na_bci" },
+    ]},
+    { id:"dbs_fus", label:"Focused Ultrasound Alt.", type:"mechanism", nodes:[
+      { id:"dbs_fus_mech",   label:"FUS Mechanism",                     type:"mechanism", arm3d:"ce_fus" },
+      { id:"dbs_phased",     label:"Phased-Array Ultrasound",           type:"device"  },
+      { id:"dbs_kwave",      label:"k-Wave / CIVA Software",            type:"mechanism"},
+    ]},
+    { id:"dbs_suppliers", label:"Suppliers & Institutes", type:"resource", nodes:[
+      { id:"dbs_fhc",        label:"FHC Inc.",                          type:"resource" },
+      { id:"dbs_wpi",        label:"World Precision Instruments",       type:"resource" },
+      { id:"dbs_sutter",     label:"Sutter Instruments",                type:"resource" },
+      { id:"dbs_narishige",  label:"Narishige",                         type:"resource" },
+      { id:"dbs_neuralynx",  label:"Neuralynx",                         type:"resource" },
+    ]},
+    { id:"dbs_gaps", label:"Open Questions", type:"gap", nodes:[
+      { id:"gap_dbs_flex",   label:"❓ Flexible Cannula Stiffness",       type:"gap" },
+      { id:"gap_dbs_calib",  label:"❓ Ultrasound Focal Calibration",     type:"gap" },
+      { id:"gap_dbs_access", label:"⚠️ Lab Access (no institution)",      type:"gap" },
+      { id:"gap_dbs_ptir_vs_w",label:"⚖️ Pt-Ir vs Tungsten (competing)",  type:"gap" },
+    ]},
+  ]
+};
+
+const rawNodes = [
+  { id:"center", label:"♾️ INFINITE LIFE", color:"#8e44ad", depth:0 },
+  ...treeNodes,
+  ...DBS_NODES
+];
+
+// Edges: tree structure + cross-links (MC clones + branch bridges)
+const rawEdges = [
+  // Main branches → center
+  {s:"bp", t:"center", curve:0},
+  {s:"na", t:"center", curve:0},
+  {s:"ce", t:"center", curve:0},
+  {s:"mc", t:"center", curve:0},
+
+  // bp subtree
+  {s:"bp",t:"bp_organ"},{s:"bp",t:"bp_cryo"},{s:"bp",t:"bp_regen"},{s:"bp",t:"bp_aging"},{s:"bp",t:"bp_gaps"},
+  {s:"bp_organ",t:"bp_heart"},{s:"bp_organ",t:"bp_kidney"},{s:"bp_organ",t:"bp_liver"},
+  {s:"bp_organ",t:"bp_lung"},{s:"bp_organ",t:"bp_xeno"},
+  {s:"bp_cryo",t:"bp_vitrify"},{s:"bp_cryo",t:"bp_cryo_neuro"},{s:"bp_cryo",t:"bp_alcor"},
+  {s:"bp_regen",t:"bp_stem"},{s:"bp_regen",t:"bp_yamanaka"},{s:"bp_regen",t:"bp_exo"},
+  {s:"bp_regen",t:"bp_sen"},{s:"bp_regen",t:"bp_telomerase"},{s:"bp_regen",t:"bp_epigenetic"},
+  {s:"bp_regen",t:"bp_gdf"},{s:"bp_regen",t:"bp_mito"},{s:"bp_regen",t:"bp_rap"},
+  {s:"bp_regen",t:"bp_altos"},
+  {s:"bp_gaps",t:"gap_cryo_EM"},{s:"bp_gaps",t:"gap_vascular"},{s:"bp_gaps",t:"gap_xeno_fail"},
+
+  // na subtree
+  {s:"na",t:"na_bci"},{s:"na",t:"na_rec"},{s:"na",t:"na_gaps"},
+  {s:"na_bci",t:"na_neuralink"},{s:"na_bci",t:"na_synchron"},{s:"na_bci",t:"na_blackrock"},
+  {s:"na_bci",t:"na_neuraldust"},{s:"na_bci",t:"na_endovascular"},
+  {s:"na_bci",t:"na_optogenetics"},{s:"na_bci",t:"na_closedloop"},
+  {s:"na_bci",t:"na_spike"},{s:"na_bci",t:"na_bmi"},{s:"na_bci",t:"na_darpa"},
+  {s:"na_rec",t:"na_dreads"},{s:"na_rec",t:"na_electroceutical"},
+  {s:"na_rec",t:"na_flexprobe"},{s:"na_rec",t:"na_mxene"},
+  {s:"na_gaps",t:"gap_cleanroom"},{s:"na_gaps",t:"gap_consciousness"},{s:"na_gaps",t:"gap_wbe"},
+
+  // ce subtree
+  {s:"ce",t:"ce_neu"},{s:"ce",t:"ce_mem"},{s:"ce",t:"ce_gaps"},
+  {s:"ce_neu",t:"ce_fus"},{s:"ce_neu",t:"ce_tdcs"},{s:"ce_neu",t:"ce_photo"},
+  {s:"ce_neu",t:"ce_ltp"},{s:"ce_neu",t:"ce_glymph"},{s:"ce_neu",t:"ce_neuroinflam"},
+  {s:"ce_mem",t:"ce_organoid"},{s:"ce_mem",t:"ce_synaptic"},
+  {s:"ce_mem",t:"ce_cortical"},{s:"ce_mem",t:"ce_invivo_crispr"},
+  {s:"ce_gaps",t:"gap_seq"},{s:"ce_gaps",t:"gap_longterm"},{s:"ce_gaps",t:"gap_crispr_fail"},
+
+  // mc subtree
+  {s:"mc",t:"mc_nano"},{s:"mc",t:"mc_fab"},{s:"mc",t:"mc_optics"},
+  {s:"mc",t:"mc_synbio"},{s:"mc",t:"mc_clone_neuro"},{s:"mc",t:"mc_clone_cryo"},
+  {s:"mc_nano",t:"mc_dna_orig"},{s:"mc_nano",t:"mc_molmotor"},{s:"mc_nano",t:"mc_nanobot"},
+  {s:"mc_fab",t:"mc_mems"},{s:"mc_fab",t:"mc_lab_chip"},{s:"mc_fab",t:"mc_microfluid"},
+  {s:"mc_fab",t:"mc_photonic"},
+  {s:"mc_optics",t:"mc_optogen"},{s:"mc_optics",t:"mc_lightsheet"},{s:"mc_optics",t:"mc_cryo_opt"},
+  {s:"mc_synbio",t:"mc_dna_store"},{s:"mc_synbio",t:"mc_genecircuit"},{s:"mc_synbio",t:"mc_celleng"},
+
+  // Cross-links: MC connects to all branches (CURVED)
+  {s:"mc_clone_neuro", t:"na_bci",   curve:0.6},
+  {s:"mc_clone_neuro", t:"na_rec",   curve:0.5},
+  {s:"mc_clone_cryo",  t:"bp_cryo",  curve:0.6},
+  {s:"mc_clone_cryo",  t:"bp_organ", curve:0.5},
+  {s:"mc_nanobot",     t:"bp_regen", curve:0.4},
+  {s:"mc_optogen",     t:"na_optogenetics", curve:0.5},
+  {s:"mc_microfluid",  t:"ce_organoid", curve:0.4},
+  {s:"mc_photonic",    t:"na_mxene",    curve:0.5},
+  {s:"mc_lab_chip",    t:"bp_kidney",   curve:0.4},
+  {s:"mc_genecircuit", t:"ce_invivo_crispr", curve:0.5},
+
+  // Bridge: BP → NA (biggest organs → neural, natural flow)
+  {s:"bp_cryo",   t:"na",     curve:0.35},
+  {s:"bp_organ",  t:"na_bci", curve:0.4},
+  {s:"bp_yamanaka",t:"ce_invivo_crispr", curve:0.3},
+
+  // bp_aging subtree (Aging Mechanisms under BP)
+  {s:"bp_aging",t:"ag_iit"},{s:"bp_aging",t:"ag_hallmarks"},{s:"bp_aging",t:"ag_new_hallmarks"},
+  {s:"bp_aging",t:"ag_institutes"},{s:"bp_aging",t:"ag_gaps"},
+  {s:"ag_iit",t:"ag_epigenome"},{s:"ag_iit",t:"ag_osk"},{s:"ag_iit",t:"ag_dnoise"},
+  {s:"ag_hallmarks",t:"ag_genomic"},{s:"ag_hallmarks",t:"ag_telomere"},
+  {s:"ag_hallmarks",t:"ag_epimut"},{s:"ag_hallmarks",t:"ag_proteostasis"},
+  {s:"ag_hallmarks",t:"ag_nutrient"},{s:"ag_hallmarks",t:"ag_mito"},
+  {s:"ag_hallmarks",t:"ag_senescence"},{s:"ag_hallmarks",t:"ag_stemex"},
+  {s:"ag_hallmarks",t:"ag_intercomm"},
+  {s:"ag_new_hallmarks",t:"ag_autophagy"},{s:"ag_new_hallmarks",t:"ag_dysbiosis"},
+  {s:"ag_new_hallmarks",t:"ag_chronic_inflam"},
+  {s:"ag_institutes",t:"ag_sinclair"},{s:"ag_institutes",t:"ag_altos"},
+  {s:"ag_institutes",t:"ag_calico"},{s:"ag_institutes",t:"ag_lifespan_io"},
+  {s:"ag_institutes",t:"ag_nobel_2012"},
+  {s:"ag_gaps",t:"gap_ag_clock"},{s:"ag_gaps",t:"gap_ag_reversal"},
+  {s:"ag_gaps",t:"gap_ag_osk_trial"},
+
+  // DBS: single node anchored between NA and CE with direct edges to both main groups
+  {s:"na_ce_dbs", t:"na", curve:0.3},
+  {s:"na_ce_dbs", t:"ce", curve:0.3},
+  // DBS 3D cross-links: only nodes that also exist in the 3D tree get arms
+  {s:"na_ce_dbs", t:"na_bci",        curve:0.45},
+  {s:"na_ce_dbs", t:"na_closedloop", curve:0.4},
+  {s:"na_ce_dbs", t:"ce_fus",        curve:0.45},
+  {s:"na_ce_dbs", t:"na_rec",        curve:0.35},
+
+  // Cross-links: Aging Problem Theories → BP Regen solutions (curved)
+  {s:"ag_senescence",  t:"bp_sen",        curve:0.4},
+  {s:"ag_stemex",      t:"bp_stem",       curve:0.4},
+  {s:"ag_epimut",      t:"bp_epigenetic", curve:0.35},
+  {s:"ag_osk",         t:"bp_yamanaka",   curve:0.4},
+  {s:"ag_telomere",    t:"bp_telomerase", curve:0.35},
+  {s:"ag_mito",        t:"bp_mito",       curve:0.35},
+  {s:"ag_altos",       t:"bp_altos",      curve:0.3},
+  {s:"ag_nutrient",    t:"bp_rap",        curve:0.4},
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'transhuman_unknown_v2';
+let unknown = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+
+function saveKnown() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([...unknown]));
+}
+
+function isKnown(id) { return !unknown.has(id); }
+function isUnknown(id) { return unknown.has(id); }
+
+function toggleKnown(id) {
+  if (unknown.has(id)) unknown.delete(id);
+  else unknown.add(id);
+  saveKnown();
+  updateGraph();
+  updateStats();
+}
+
+// ── VOTING SYSTEM ────────────────────────────────────────────────────────────
+const VOTES_KEY = 'transhuman_votes_v1';
+let nodeVotes = JSON.parse(localStorage.getItem(VOTES_KEY) || '{}');
+
+function saveVotes() {
+  localStorage.setItem(VOTES_KEY, JSON.stringify(nodeVotes));
+}
+
+function getVotes(id) { return nodeVotes[id] || 0; }
+
+function castVote(delta) {
+  if (!selectedNode || CORE_IDS.has(selectedNode.id)) return;
+  const id = selectedNode.id;
+  const current = nodeVotes[id] || 0;
+  const next = current + delta;
+  if (next > 2 || next < -2) return;
+  nodeVotes[id] = next;
+  saveVotes();
+  pushVoteToDB(id, next);
+  updateVotePanel();
+  updateGraph();
+}
+
+function updateVotePanel() {
+  const panel = document.getElementById('vote-panel');
+  const label = document.getElementById('vote-node-label');
+  const count = document.getElementById('vote-count');
+  if (!selectedNode || CORE_IDS.has(selectedNode.id)) {
+    panel.classList.remove('visible');
+    return;
+  }
+  label.textContent = selectedNode.label.replace(/[^\w\s()\-]/g, '').trim();
+  count.textContent = getVotes(selectedNode.id);
+  const v = getVotes(selectedNode.id);
+  count.style.color = v > 0 ? '#2ecc71' : v < 0 ? '#e74c3c' : '#fff';
+  panel.classList.add('visible');
+}
+
+function voteColor(baseColor, id) {
+  const v = getVotes(id);
+  if (v === 0) return baseColor;
+  // Positive votes → brighter, add glow green tint
+  // Negative votes → dimmer, fade toward gray
+  if (v > 0) {
+    const intensity = Math.min(v / 2, 1);
+    return lerpColor(baseColor, '#2ecc71', intensity * 0.5);
+  } else {
+    const fade = Math.min(Math.abs(v) / 2, 1);
+    return lerpColor(baseColor, '#2a2535', fade * 0.6);
+  }
+}
+
+function lerpColor(a, b, t) {
+  const ah = parseInt(a.replace('#',''), 16);
+  const bh = parseInt(b.replace('#',''), 16);
+  if (isNaN(ah) || isNaN(bh)) return a;
+  const ar = (ah >> 16) & 0xff, ag = (ah >> 8) & 0xff, ab = ah & 0xff;
+  const br = (bh >> 16) & 0xff, bg = (bh >> 8) & 0xff, bb = bh & 0xff;
+  const rr = Math.round(ar + (br - ar) * t);
+  const rg = Math.round(ag + (bg - ag) * t);
+  const rb = Math.round(ab + (bb - ab) * t);
+  return '#' + ((1 << 24) + (rr << 16) + (rg << 8) + rb).toString(16).slice(1);
+}
+
+// ── GRAPH ─────────────────────────────────────────────────────────────────────
+const CORE_IDS = new Set(['center','bp','na','ce','mc']);
+
+const gData = {
+  nodes: rawNodes.map(n => {
+    const grp = nodeGroup(n.id);
+    const color = grp ? GROUP_COLORS[grp] : n.color;
+    return { id: n.id, label: n.label, baseColor: color, val: sizeMap[n.depth] || 5 };
+  }),
+  links: rawEdges.map(e => ({ source: e.s, target: e.t, curve: e.curve || 0 }))
+};
+
+const MAP2D_REGISTRY = { 'na_ce_dbs': DBS_2D_DATA };
+
+let selectedNode = null;
+let connectedIds = new Set();
+
+let secondaryIds = new Set();
+
+function setSelected(node) {
+  selectedNode = node;
+  connectedIds = new Set();
+  secondaryIds = new Set();
+  if (node) {
+    connectedIds.add(node.id);
+    gData.links.forEach(l => {
+      const sid = typeof l.source === 'object' ? l.source.id : l.source;
+      const tid = typeof l.target === 'object' ? l.target.id : l.target;
+      if (sid === node.id) connectedIds.add(tid);
+      if (tid === node.id) connectedIds.add(sid);
+    });
+    // 2nd degree
+    gData.links.forEach(l => {
+      const sid = typeof l.source === 'object' ? l.source.id : l.source;
+      const tid = typeof l.target === 'object' ? l.target.id : l.target;
+      if (connectedIds.has(sid) && !connectedIds.has(tid)) secondaryIds.add(tid);
+      if (connectedIds.has(tid) && !connectedIds.has(sid)) secondaryIds.add(sid);
+    });
+  }
+  Graph.nodeColor(nodeColor).linkColor(linkColor).linkWidth(linkWidth);
+  updateVotePanel();
+  updateBloodlineBtn();
+
+  // Show plus button for adding community entries on any non-core node
+  let plusBtn = document.getElementById('community-plus-btn');
+  if (!plusBtn) {
+    plusBtn = document.createElement('button');
+    plusBtn.id = 'community-plus-btn';
+    plusBtn.className = 'plus-btn';
+    plusBtn.innerHTML = '+';
+    plusBtn.title = 'Add new entry (DIY/Buy/Fact...)';
+    plusBtn.onclick = openCommunityModal;
+    document.body.appendChild(plusBtn);
+  }
+  plusBtn.style.display = (node && !CORE_IDS.has(node.id)) ? 'flex' : 'none';
+}
+
+function nodeColor(n) {
+  const ripened = voteColor(n.baseColor, n.id);
+  if (selectedNode) {
+    if (connectedIds.has(n.id)) return ripened;
+    if (secondaryIds.has(n.id)) return '#00dcc8';
+    return 'rgba(40,35,60,0.2)';
+  }
+  if (CORE_IDS.has(n.id)) return n.baseColor;
+  if (isUnknown(n.id)) return 'rgba(60,55,80,0.4)';
+  return ripened;
+}
+
+function linkColor(link) {
+  const sid = typeof link.source === 'object' ? link.source.id : link.source;
+  const tid = typeof link.target === 'object' ? link.target.id : link.target;
+  if (selectedNode) {
+    // 1st degree - bright
+    if (sid === selectedNode.id || tid === selectedNode.id)
+      return link.curve > 0 ? 'rgba(255,220,80,0.95)' : 'rgba(200,150,255,0.95)';
+    // 2nd degree - dimmer flicker
+    const srcIn = connectedIds.has(sid);
+    const tgtIn = connectedIds.has(tid);
+    const srcSec = secondaryIds.has(sid);
+    const tgtSec = secondaryIds.has(tid);
+    if ((srcIn && tgtSec) || (tgtIn && srcSec))
+      return 'rgba(0,220,200,0.45)';
+    return 'rgba(60,55,80,0.05)';
+  }
+  if (link.curve && link.curve > 0) return 'rgba(255,180,50,0.4)';
+  return 'rgba(150,100,255,0.18)';
+}
+
+function linkWidth(link) {
+  const sid = typeof link.source === 'object' ? link.source.id : link.source;
+  const tid = typeof link.target === 'object' ? link.target.id : link.target;
+  if (selectedNode) {
+    if (sid === selectedNode.id || tid === selectedNode.id)
+      return link.curve > 0 ? 3.0 : 2.0;
+    const srcIn = connectedIds.has(sid);
+    const tgtIn = connectedIds.has(tid);
+    const srcSec = secondaryIds.has(sid);
+    const tgtSec = secondaryIds.has(tid);
+    if ((srcIn && tgtSec) || (tgtIn && srcSec)) return 0.8;
+  }
+  return link.curve > 0 ? 1.2 : 0.6;
+}
+
+function catLabel(id) {
+  if (id === 'center') return '♾️ Core Goal';
+  if (id.startsWith('dbs') || id === 'na_ce_dbs') return '🔬 Deep Brain Stimulation (NA↔CE)';
+  if (id.startsWith('bp_aging') || id.startsWith('ag_')) return '� Aging Mechanisms (Problem Theory)';
+  if (id.startsWith('bp')) return '�� Bio Replacement & Preservation';
+  if (id.startsWith('na')) return '🧠 Neural Autonomy';
+  if (id.startsWith('ce')) return '🔬 Cognitive Enhancement';
+  if (id.startsWith('mc')) return '⚙️ Microcosmic Construction';
+  if (id.startsWith('gap_dbs')) return '⚠️ Gap – DBS';
+  if (id.startsWith('gap_ag')) return '⚠️ Gap – Aging';
+  if (id.startsWith('gap')) return '⚠️ Gap / Missing Link';
+  return 'Node';
+}
+
+const tooltip = document.getElementById('tooltip');
+
+// Firefox/Edge compatibility: ensure libraries loaded
+let Graph = null; // Declare outside so it's accessible everywhere
+try {
+  if (typeof ForceGraph3D === 'undefined' || typeof THREE === 'undefined') {
+    throw new Error('3D libraries not loaded - check internet connection');
+  }
+  
+  Graph = ForceGraph3D()(document.getElementById('graph'))
+  .graphData(gData)
+  .backgroundColor('#050510')
+  .nodeLabel('')
+  .nodeColor(nodeColor)
+  .nodeVal(n => n.val)
+  .nodeResolution(16)
+  .nodeOpacity(0.95)
+  .linkColor(linkColor)
+  .linkWidth(linkWidth)
+  .linkCurvature(l => l.curve || 0)
+  .linkDirectionalParticles(l => l.curve > 0 ? 3 : 2)
+  .linkDirectionalParticleWidth(l => l.curve > 0 ? 1.8 : 1.0)
+  .linkDirectionalParticleColor(l => l.curve > 0 ? 'rgba(255,200,80,0.9)' : 'rgba(180,130,255,0.7)')
+  .onNodeHover(node => {
+    if (node) {
+      tooltip.style.display = 'block';
+      tooltip.querySelector('.t-label').textContent = node.label;
+      tooltip.querySelector('.t-cat').textContent = catLabel(node.id);
+      const grp = nodeGroup(node.id);
+      const grpLabels = {device:'🔵 Gerät',resource:'🟣 Special Resource',theory:'🔶 Theorie',problem:'🔴 Problemtheorie',mechanism:'🟢 Mechanismus',method:'⚪ Methode/Operation'};
+      tooltip.querySelector('.t-status').textContent =
+        MAP2D_REGISTRY[node.id] ? '🗺 2D-Map — click twice to open' :
+        CORE_IDS.has(node.id) ? '● Core Node' :
+        grp ? grpLabels[grp] :
+        isUnknown(node.id) ? '⚑ Marked — to research' : '✓ Known';
+    } else {
+      tooltip.style.display = 'none';
+    }
+    document.body.style.cursor = node ? 'pointer' : 'default';
+  })
+  .onNodeClick(node => {
+    // Bloodline picking: if active, finish the bloodline
+    if (bloodlinePicking) {
+      finishBloodlinePick(node);
+      return;
+    }
+    if (selectedNode && selectedNode.id === node.id) {
+      // second click: 2D-map for cross-zone nodes, wiki for others
+      if (MAP2D_REGISTRY && MAP2D_REGISTRY[node.id]) {
+        open2dMap(node.id);
+      } else {
+        openWikiPanel(node);
+      }
+    } else {
+      setSelected(node);
+      Graph.cameraPosition(
+        { x: node.x * 1.6, y: node.y * 1.6, z: node.z * 1.6 },
+        { x: node.x, y: node.y, z: node.z },
+        800
+      );
+    }
+  })
+  .onEngineStop(() => {
+    // Pin DBS cluster spatially between NA and CE
+    const naNode  = gData.nodes.find(n => n.id === 'na');
+    const ceNode  = gData.nodes.find(n => n.id === 'ce');
+    const dbsNode = gData.nodes.find(n => n.id === 'na_ce_dbs');
+    if (naNode && ceNode && dbsNode && !dbsNode.__pinned) {
+      dbsNode.__pinned = true;
+      const mx = (naNode.x + ceNode.x) / 2;
+      const my = (naNode.y + ceNode.y) / 2;
+      const mz = (naNode.z + ceNode.z) / 2;
+      dbsNode.fx = mx; dbsNode.fy = my; dbsNode.fz = mz;
+      Graph.d3ReheatSimulation();
+    }
+  });
+} catch (e) {
+  console.error('Graph initialization failed:', e);
+  document.getElementById('graph').innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100%;color:#fff;text-align:center;padding:40px;font-family:sans-serif;"><div><h3>3D Graph Error</h3><p>' + e.message + '</p><p>Try Chrome/Edge, or check console (F12) for details</p></div></div>';
+  Graph = { cameraPosition: ()=>{}, camera: ()=>null, d3ReheatSimulation: ()=>{}, _camera: null };
+}
+
+// ── 2D MAP OVERLAY ────────────────────────────────────────────────────────────
+const map2dOverlay  = document.getElementById('map2d-overlay');
+const map2dBody     = document.getElementById('map2d-body');
+const map2dTitle    = document.getElementById('map2d-title');
+const map2dSubtitle = document.getElementById('map2d-subtitle');
+const map2dClose    = document.getElementById('map2d-close');
+const map2dBackdrop = document.getElementById('map2d-backdrop');
+
+const TYPE_COLORS = {
+  device:    '#3498db',
+  resource:  '#9b59b6',
+  theory:    '#e67e22',
+  problem:   '#e74c3c',
+  mechanism: '#27ae60',
+  method:    '#b0bec5',
+  gap:       '#e74c3c',
+  crosslink: '#f1c40f',
+};
+
+const TYPE_LABELS = {
+  device:'Gerät', resource:'Resource', theory:'Theorie',
+  problem:'Problem', mechanism:'Mechanismus', method:'Methode',
+  gap:'Gap', crosslink:'Cross-Zone'
+};
+
+function open2dMap(nodeId) {
+  const data = MAP2D_REGISTRY[nodeId];
+  if (!data) return;
+
+  map2dTitle.textContent    = data.label;
+  map2dSubtitle.textContent = 'Cross-Zone: Neural Augmentation ↔ Cognitive Enhancement';
+
+  map2dBody.innerHTML = '';
+  
+  // Center panel - size grows with content
+  const panel = document.getElementById('map2d-panel');
+  panel.classList.remove('disc-mode');
+  panel.style.left = '50%';
+  panel.style.top = '50%';
+  panel.style.transform = 'translate(-50%, -50%)';
+  const sectionCount = data.sections.length;
+  const totalNodes = data.sections.reduce((acc, s) => acc + (s.nodes?.length || 0), 0);
+  // Large maps → open as own full page
+  const PAGE_MAP = { 'na_ce_dbs': 'map-dbs.html' };
+  if ((totalNodes > 20 || sectionCount > 4) && PAGE_MAP[nodeId]) {
+    window.open(PAGE_MAP[nodeId], '_blank');
+    return;
+  }
+  if (totalNodes > 10 || sectionCount > 2) {
+    panel.style.width = 'min(92vw, 860px)';
+    panel.style.maxHeight = '85vh';
+  } else {
+    panel.style.width = 'min(85vw, 620px)';
+    panel.style.maxHeight = '70vh';
+  }
+  // Hide old floating plus btn when 2D map is open
+  const oldPlus = document.getElementById('community-plus-btn');
+  if (oldPlus) oldPlus.style.display = 'none';
+
+  // Create tree structure
+  const treeEl = document.createElement('div');
+  treeEl.className = 'mindmap-tree';
+
+  data.sections.forEach((sec, index) => {
+    const secColor = TYPE_COLORS[sec.type] || '#aaa';
+    
+    // Create branch
+    const branchEl = document.createElement('div');
+    branchEl.className = 'mindmap-branch';
+    branchEl.style.animationDelay = `${0.15 + index * 0.1}s`;
+    
+    // Branch header with expand button
+    const headerEl = document.createElement('div');
+    headerEl.className = 'mindmap-branch-header';
+    headerEl.innerHTML = `
+      <button class="mindmap-expand-btn" data-expanded="false">▶</button>
+      <span class="mindmap-branch-title">${sec.label}</span>
+      <span class="mindmap-branch-type" style="color:${secColor}">${TYPE_LABELS[sec.type]||sec.type}</span>
+    `;
+    
+    // Nodes container
+    const nodesContainer = document.createElement('div');
+    nodesContainer.className = 'mindmap-nodes-container';
+    
+    // Add nodes
+    if (sec.nodes) {
+      sec.nodes.forEach(n => {
+        const nColor = TYPE_COLORS[n.type] || '#aaa';
+        const nodeEl = document.createElement('div');
+        nodeEl.className = 'mindmap-node';
+        nodeEl.dataset.nodeId = n.id;
+        nodeEl.dataset.nodeLabel = n.label;
+        nodeEl.innerHTML = `
+          <span class="mindmap-node-dot" style="background:${nColor}"></span>
+          <span>${n.label}</span>
+          <button class="mindmap-node-plus" title="Add entry">+</button>
+        `;
+        
+        // Plus button click
+        const plusBtn = nodeEl.querySelector('.mindmap-node-plus');
+        plusBtn.onclick = (e) => {
+          e.stopPropagation();
+          showCategoryBubble(nodeEl, n, sec);
+        };
+        
+        // Node click (fly to 3D if arm3d)
+        if (n.arm3d) {
+          nodeEl.onclick = () => {
+            const target = gData.nodes.find(x => x.id === n.arm3d);
+            if (target) {
+              close2dMap();
+              setSelected(target);
+              Graph.cameraPosition(
+                { x: target.x * 1.6, y: target.y * 1.6, z: target.z * 1.6 },
+                { x: target.x, y: target.y, z: target.z },
+                900
+              );
+            }
+          };
+        }
+        
+        nodesContainer.appendChild(nodeEl);
+      });
+    }
+    
+    // Expand/collapse
+    const expandBtn = headerEl.querySelector('.mindmap-expand-btn');
+    expandBtn.onclick = () => {
+      const expanded = expandBtn.dataset.expanded === 'true';
+      expandBtn.dataset.expanded = (!expanded).toString();
+      expandBtn.textContent = expanded ? '▶' : '▼';
+      nodesContainer.classList.toggle('expanded', !expanded);
+    };
+    headerEl.onclick = (e) => {
+      if (e.target !== expandBtn) expandBtn.click();
+    };
+    
+    branchEl.appendChild(headerEl);
+    branchEl.appendChild(nodesContainer);
+    treeEl.appendChild(branchEl);
+    
+    // Auto-expand first 2 sections
+    if (index < 2) {
+      setTimeout(() => expandBtn.click(), 100 + index * 50);
+    }
+  });
+  
+  map2dBody.appendChild(treeEl);
+
+  map2dOverlay.classList.add('open');
+  document.body.classList.add('map2d-open');
+}
+
+// Show category selection bubble
+function showCategoryBubble(nodeEl, nodeData, sectionData) {
+  // Remove existing bubbles
+  document.querySelectorAll('.category-bubble').forEach(b => b.remove());
+  
+  const rect = nodeEl.getBoundingClientRect();
+  const bubble = document.createElement('div');
+  bubble.className = 'category-bubble';
+  bubble.style.left = (rect.right + 10) + 'px';
+  bubble.style.top = rect.top + 'px';
+  
+  const categories = [
+    { id: 'diy', icon: '🔧', label: 'DIY / Build', class: 'cat-diy' },
+    { id: 'buy', icon: '🛒', label: 'Buy / Suppliers', class: 'cat-buy' },
+    { id: 'fact', icon: '📚', label: 'Fact / Learn', class: 'cat-fact' },
+    { id: 'video', icon: '🎥', label: 'Video', class: 'cat-video' },
+    { id: 'dataset', icon: '📊', label: 'Dataset', class: 'cat-dataset' },
+    { id: 'rnd', icon: '🔬', label: 'R&D / Paper', class: 'cat-rnd' },
+  ];
+  
+  categories.forEach(cat => {
+    const opt = document.createElement('div');
+    opt.className = 'category-option';
+    opt.innerHTML = `
+      <span class="category-icon ${cat.class}">${cat.icon}</span>
+      <span>${cat.label}</span>
+    `;
+    opt.onclick = () => {
+      bubble.remove();
+      openCategoryContent(cat.id, nodeData, sectionData);
+    };
+    bubble.appendChild(opt);
+  });
+  
+  document.body.appendChild(bubble);
+  
+  // Close on outside click
+  setTimeout(() => {
+    document.addEventListener('click', function closeBubble(e) {
+      if (!bubble.contains(e.target)) {
+        bubble.remove();
+        document.removeEventListener('click', closeBubble);
+      }
+    });
+  }, 10);
+}
+
+// Open category-specific content
+function openCategoryContent(category, nodeData, sectionData) {
+  const modal = document.createElement('div');
+  modal.className = 'category-content-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(5,5,16,0.9);z-index:10001;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);';
+  
+  const content = document.createElement('div');
+  content.style.cssText = 'background:rgba(15,12,30,0.98);border:1px solid rgba(241,196,15,0.3);border-radius:16px;padding:24px;max-width:500px;width:90%;max-height:80vh;overflow:auto;';
+  
+  const titles = {
+    diy: '🔧 DIY / Build Instructions',
+    buy: '🛒 Buy / Supplier Directory',
+    fact: '📚 Facts & Learning',
+    video: '🎥 Video Resources',
+    dataset: '📊 Datasets & Data',
+    rnd: '🔬 Research & Development'
+  };
+  
+  content.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(241,196,15,0.2);">
+      <h3 style="margin:0;font-size:14px;color:#f1c40f;">${titles[category]}</h3>
+      <button class="close-cat-modal" style="background:none;border:1px solid rgba(255,255,255,0.2);color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;">×</button>
+    </div>
+    <div class="category-content-body"></div>
+  `;
+  
+  const body = content.querySelector('.category-content-body');
+  
+  // Generate content based on category and node
+  if (category === 'buy') {
+    body.innerHTML = generateBuyContent(nodeData, sectionData);
+  } else if (category === 'diy') {
+    body.innerHTML = generateDIYContent(nodeData, sectionData);
+  } else {
+    body.innerHTML = `
+      <div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,0.4);">
+        <p style="margin-bottom:16px;">No pre-defined entries yet for <strong style="color:#f1c40f;">${nodeData.label}</strong></p>
+        <button class="add-entry-btn" style="padding:10px 20px;background:rgba(241,196,15,0.2);border:1px solid rgba(241,196,15,0.4);color:#f1c40f;border-radius:8px;cursor:pointer;font-size:12px;">
+          + Add URL or Entry
+        </button>
+      </div>
+    `;
+    
+    const addBtn = body.querySelector('.add-entry-btn');
+    if (addBtn) {
+      addBtn.onclick = () => {
+        modal.remove();
+        openCommunityModalForNode(nodeData, category);
+      };
+    }
+  }
+  
+  content.querySelector('.close-cat-modal').onclick = () => modal.remove();
+  modal.appendChild(content);
+  document.body.appendChild(modal);
+}
+
+// Generate Buy menu content
+function generateBuyContent(nodeData, sectionData) {
+  // Pre-defined supplier database for DBS/electrode topics
+  const suppliers = {
+    'dbs_electrodes': [
+      { name: 'FHC Inc.', url: 'https://www.fh-co.com', products: ['Microelectrodes', 'Tungsten', 'Platinum-Iridium'] },
+      { name: 'World Precision Instruments', url: 'https://www.wpiinc.com', products: ['Microelectrodes', 'Stimulation'] },
+      { name: 'Sutter Instruments', url: 'https://www.sutter.com', products: ['Micropipette Puller', 'Glass electrodes'] },
+      { name: 'Narishige', url: 'https://www.narishige-group.com', products: ['Micromanipulators', 'Stereotaxic'] },
+      { name: 'Neuralynx', url: 'https://www.neuralynx.com', products: ['Recording Systems', 'Electrodes'] },
+    ],
+    'dbs_surgery': [
+      { name: 'Integra LifeSciences', url: 'https://www.integralife.com', products: ['Burr-hole kits', 'Stereotactic'] },
+      { name: 'Medtronic', url: 'https://www.medtronic.com', products: ['DBS Systems', 'Leads'] },
+    ],
+    'default': [
+      { name: 'Add Custom Supplier', url: '#custom', products: ['Click to add your own supplier URL'] }
+    ]
+  };
+  
+  const sectionKey = sectionData.id || 'default';
+  const items = suppliers[sectionKey] || suppliers['default'];
+  
+  let html = '<div style="display:flex;flex-direction:column;gap:10px;">';
+  
+  items.forEach(item => {
+    html += `
+      <a href="${item.url}" target="_blank" style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(52,152,219,0.3);border-radius:10px;text-decoration:none;color:#fff;transition:all 0.2s;" onmouseover="this.style.background='rgba(52,152,219,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+        <span style="font-size:20px;">🏢</span>
+        <div style="flex:1;">
+          <div style="font-weight:600;font-size:12px;margin-bottom:2px;">${item.name}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.5);">${item.products.join(', ')}</div>
+        </div>
+        <span style="font-size:16px;color:#3498db;">→</span>
+      </a>
+    `;
+  });
+  
+  html += `
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1);">
+      <button class="rag-setup-btn" style="width:100%;padding:12px;background:linear-gradient(135deg,#f1c40f,#e67e22);border:none;border-radius:8px;color:#000;font-weight:600;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+        <span>⚡</span>
+        <span>Setup RAG Search for Suppliers</span>
+      </button>
+      <p style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:8px;text-align:center;">
+        Connect to your RAG server to search supplier catalogs automatically
+      </p>
+    </div>
+  </div>`;
+  
+  return html;
+}
+
+// Generate DIY content
+function generateDIYContent(nodeData, sectionData) {
+  return `
+    <div style="text-align:center;padding:30px 20px;">
+      <p style="color:rgba(255,255,255,0.6);margin-bottom:20px;">
+        DIY instructions for <strong style="color:#2ecc71;">${nodeData.label}</strong>
+      </p>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <button class="add-diy-btn" style="padding:14px;background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.4);border-radius:10px;color:#2ecc71;cursor:pointer;font-size:12px;text-align:left;">
+          <strong>📋 Add Step-by-Step Guide</strong><br>
+          <span style="font-size:10px;opacity:0.7;">Create a DIY tutorial with materials list</span>
+        </button>
+        <button class="add-video-btn" style="padding:14px;background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);border-radius:10px;color:#e74c3c;cursor:pointer;font-size:12px;text-align:left;">
+          <strong>🎥 Link Video Tutorial</strong><br>
+          <span style="font-size:10px;opacity:0.7;">Add YouTube or self-hosted video</span>
+        </button>
+        <button class="add-bom-btn" style="padding:14px;background:rgba(155,89,182,0.15);border:1px solid rgba(155,89,182,0.4);border-radius:10px;color:#9b59b6;cursor:pointer;font-size:12px;text-align:left;">
+          <strong>📊 Upload Bill of Materials</strong><br>
+          <span style="font-size:10px;opacity:0.7;">Parts list with suppliers and costs</span>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// Open community modal pre-filled for specific node
+function openCommunityModalForNode(nodeData, category) {
+  // Set up modal with node context
+  selectedNode = { id: nodeData.id, label: nodeData.label };
+  openCommunityModal();
+  
+  // Pre-select category if possible
+  const typeSelect = document.getElementById('comm-type');
+  if (typeSelect) {
+    const catMap = { diy: 'diy', buy: 'buy', fact: 'fakt', video: 'video', dataset: 'dataset', rnd: 'rnd' };
+    if (catMap[category]) {
+      typeSelect.value = catMap[category];
+    }
+  }
+}
+
+// Create/update arm lines from 2D disc to 3D nodes (for arm3d nodes)
+function updateArmLines(data, screenPos, sourceNodeId) {
+  // Remove old arm lines
+  document.querySelectorAll('.map2d-arm-line').forEach(el => el.remove());
+  
+  if (!data.sections || !Graph) return;
+  
+  data.sections.forEach(sec => {
+    if (!sec.nodes) return;
+    sec.nodes.forEach(n => {
+      if (n.arm3d) {
+        const targetNode = gData.nodes.find(x => x.id === n.arm3d);
+        if (targetNode) {
+          const targetScreen = Graph.graph2ScreenCoords(targetNode.x, targetNode.y, targetNode.z);
+          createArmLine(screenPos, targetScreen, n.arm3d);
+        }
+      }
+    });
+  });
+}
+
+// Create a single arm line between two screen positions
+function createArmLine(from, to, targetId) {
+  const line = document.createElement('div');
+  line.className = 'map2d-arm-line';
+  line.dataset.target = targetId;
+  
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const length = Math.sqrt(dx*dx + dy*dy);
+  const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+  
+  line.style.left = from.x + 'px';
+  line.style.top = from.y + 'px';
+  line.style.width = length + 'px';
+  line.style.transform = `rotate(${angle}deg)`;
+  
+  document.body.appendChild(line);
+  
+  // Fade in
+  requestAnimationFrame(() => line.classList.add('visible'));
+}
+
+// Track camera to keep billboard at node position
+let billboardTrackingId = null;
+function startBillboardTracking(nodeId) {
+  stopBillboardTracking();
+  
+  function update() {
+    const panel = document.getElementById('map2d-panel');
+    if (!panel || !panel.classList.contains('disc-mode')) return;
+    
+    const node = gData.nodes.find(n => n.id === nodeId);
+    if (!node || !Graph) return;
+    
+    const screenPos = Graph.graph2ScreenCoords(node.x, node.y, node.z);
+    panel.style.left = screenPos.x + 'px';
+    panel.style.top = screenPos.y + 'px';
+    
+    // Update arm lines too
+    const data = MAP2D_REGISTRY[nodeId];
+    if (data) updateArmLines(data, screenPos, nodeId);
+    
+    billboardTrackingId = requestAnimationFrame(update);
+  }
+  
+  billboardTrackingId = requestAnimationFrame(update);
+}
+
+function stopBillboardTracking() {
+  if (billboardTrackingId) {
+    cancelAnimationFrame(billboardTrackingId);
+    billboardTrackingId = null;
+  }
+  // Remove arm lines
+  document.querySelectorAll('.map2d-arm-line').forEach(el => el.remove());
+}
+
+function close2dMap() {
+  stopBillboardTracking();
+  const panel = document.getElementById('map2d-panel');
+  if (panel) panel.classList.remove('disc-mode');
+  map2dOverlay.classList.remove('open');
+  document.body.classList.remove('map2d-open');
+  // Remove all category bubbles
+  document.querySelectorAll('.category-bubble').forEach(b => b.remove());
+  // Remove all category content modals
+  document.querySelectorAll('.category-content-modal').forEach(m => m.remove());
+  // Hide plus button when 2D map closes
+  const plusBtn = document.getElementById('community-plus-btn');
+  if (plusBtn) plusBtn.style.display = 'none';
+  // Close community modal if open
+  const modal = document.getElementById('community-modal');
+  if (modal) modal.remove();
+}
+
+// Community Modal for adding new entries
+function openCommunityModal() {
+  // Remove existing modal
+  const existing = document.getElementById('community-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'community-modal';
+  modal.className = 'community-modal';
+  const nodeName = selectedNode ? selectedNode.label.replace(/[^\w\s()\-\/&]/g, '').trim() : '';
+  modal.innerHTML = `
+    <h3>Add Community Entry</h3>
+    <div style="font-size:10px;color:rgba(255,255,255,0.4);margin:-8px 0 12px;">Node: <strong style="color:rgba(255,255,255,0.7)">${nodeName}</strong></div>
+    <select id="comm-type">
+      <option value="">Select Category...</option>
+      <option value="diy">DIY (Self-Build)</option>
+      <option value="buy">Buy (Purchase)</option>
+      <option value="fakt">Fact (Established)</option>
+      <option value="rnd">Research and Development (Theory)</option>
+      <option value="link">Link / Resource</option>
+      <option value="video">Video</option>
+      <option value="dataset">Dataset</option>
+      <option value="paper">Research Paper</option>
+      <option value="other">Other (= specify in comments)</option>
+    </select>
+    <input type="text" id="comm-title" placeholder="Topic / Title">
+    <input type="url" id="comm-url" placeholder="https://... (URL)">
+    <textarea id="comm-desc" rows="3" placeholder="Comments / Description"></textarea>
+    <div style="margin:12px 0;padding:12px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid rgba(255,255,255,0.1);">
+      <label style="display:block;font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:6px;">Attachments</label>
+      <input type="file" id="comm-files" multiple style="display:none;" onchange="handleFileSelect(this)">
+      <button onclick="document.getElementById('comm-files').click()" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 12px;border-radius:4px;font-size:11px;cursor:pointer;">
+        Upload Files (PDF, Audio, Data, Text)
+      </button>
+      <div id="file-list" style="margin-top:8px;font-size:10px;color:rgba(255,255,255,0.4);"></div>
+    </div>
+    <div style="margin:12px 0;padding:8px 12px;background:rgba(46,204,113,0.08);border-radius:8px;border:1px solid rgba(46,204,113,0.2);display:flex;align-items:center;gap:8px;">
+      <span style="font-size:14px;">&#9889;</span>
+      <div style="font-size:10px;color:rgba(46,204,113,0.8);">
+        Auto-sync to RAG Server (Pi / ChromaDB / all-MiniLM-L6-v2)
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px;gap:8px;">
+      <button onclick="closeCommunityModal()">Cancel</button>
+      <button class="btn-primary" onclick="submitCommunityEntry()">Add Entry</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function handleFileSelect(input) {
+  const files = input.files;
+  const list = document.getElementById('file-list');
+  if (files.length === 0) {
+    list.textContent = '';
+    return;
+  }
+  const names = Array.from(files).map(f => f.name).join(', ');
+  list.textContent = 'Selected: ' + names;
+  list.style.color = 'rgba(46, 204, 113, 0.7)';
+}
+
+function closeCommunityModal() {
+  const modal = document.getElementById('community-modal');
+  if (modal) modal.remove();
+}
+
+function submitCommunityEntry() {
+  const type = document.getElementById('comm-type').value;
+  const title = document.getElementById('comm-title').value;
+  const url = document.getElementById('comm-url').value;
+  const desc = document.getElementById('comm-desc').value;
+  const filesInput = document.getElementById('comm-files');
+
+  if (!type || !title) {
+    alert('Please select category and enter topic');
+    return;
+  }
+
+  const files = filesInput?.files ? Array.from(filesInput.files).map(f => f.name) : [];
+
+  const entry = {
+    id: Date.now(),
+    type,
+    title,
+    url,
+    desc,
+    files,
+    votes: 0,
+    timestamp: new Date().toISOString(),
+    nodeId: selectedNode ? selectedNode.id : null
+  };
+
+  // Store in localStorage
+  const entries = JSON.parse(localStorage.getItem('community-entries') || '[]');
+  entries.push(entry);
+  localStorage.setItem('community-entries', JSON.stringify(entries));
+
+  // Auto-search for summary if this is a new node entry
+  if (type === 'paper' || type === 'fact' || type === 'rnd') {
+    searchAutoSummary(title, entry.nodeId).then(summary => {
+      if (summary) {
+        console.log('[AUTO-SUMMARY] Found:', summary.type, summary.title);
+        // Show notification to user
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+          position:fixed; top:20px; right:20px; background:rgba(46,204,113,0.9); 
+          color:white; padding:12px 16px; border-radius:8px; font-size:12px; z-index:10000;
+          animation:slideIn 0.3s ease;
+        `;
+        notification.textContent = `📚 Found ${summary.type}: ${summary.title}`;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 4000);
+      }
+    });
+  }
+
+  // Always push to Pi RAG Server
+  const ragText = [title, desc, url, type].filter(Boolean).join(' | ');
+  fetch('http://192.168.2.136:8765/add', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-API-Key': 'longevity-rag-key' },
+    body: JSON.stringify({
+      id: 'entry_' + entry.id,
+      text: ragText,
+      metadata: { type, title, url, nodeId: entry.nodeId, timestamp: entry.timestamp }
+    })
+  })
+  .then(r => r.json())
+  .then(res => console.log('[RAG] Entry added:', res))
+  .catch(err => console.warn('[RAG] Server not reachable:', err.message));
+
+  // Push to Supabase DB
+  pushEntryToDB(entry);
+
+  closeCommunityModal();
+  alert('Entry saved!');
+}
+
+map2dClose.onclick   = close2dMap;
+map2dBackdrop.onclick = close2dMap;
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (map2dOverlay.classList.contains('open')) { close2dMap(); return; }
+    if (wikiOverlay.classList.contains('open')) closeWikiPanel();
+    else setSelected(null);
+  }
+});
+
+document.addEventListener('mousemove', e => {
+  tooltip.style.left = (e.clientX + 16) + 'px';
+  tooltip.style.top = (e.clientY - 10) + 'px';
+});
+
+function updateGraph() {
+  Graph.nodeColor(nodeColor).linkColor(linkColor).linkWidth(linkWidth);
+}
+
+// ── BLOODLINE SYSTEM ─────────────────────────────────────────────────────────
+let userBloodlines = [];
+let bloodlinePicking = false;
+let bloodlineSource = null;
+
+function loadBloodlines() {
+  const stored = localStorage.getItem('mindmap_bloodlines');
+  userBloodlines = stored ? JSON.parse(stored) : [];
+  renderBloodlineSidebar();
+  applyBloodlineLinks();
+}
+
+function saveBloodlines() {
+  localStorage.setItem('mindmap_bloodlines', JSON.stringify(userBloodlines));
+}
+
+function startBloodlinePick() {
+  if (!selectedNode || CORE_IDS.has(selectedNode.id)) return;
+  bloodlinePicking = true;
+  bloodlineSource = selectedNode;
+  const btn = document.getElementById('bloodline-add-btn');
+  btn.classList.add('picking');
+  btn.title = 'Now click target node...';
+}
+
+function finishBloodlinePick(targetNode) {
+  if (!bloodlineSource || !targetNode || bloodlineSource.id === targetNode.id) {
+    cancelBloodlinePick();
+    return;
+  }
+  const exists = userBloodlines.some(b =>
+    b.source === bloodlineSource.id && b.target === targetNode.id
+  );
+  if (!exists) {
+    const bl = {
+      id: Date.now(),
+      source: bloodlineSource.id,
+      target: targetNode.id,
+      sourceLabel: bloodlineSource.label.replace(/[^\w\s()\-\/&]/g, '').trim(),
+      targetLabel: targetNode.label.replace(/[^\w\s()\-\/&]/g, '').trim(),
+      created: new Date().toISOString()
+    };
+    userBloodlines.push(bl);
+    saveBloodlines();
+    pushBloodlineToDB(bl);
+    renderBloodlineSidebar();
+    applyBloodlineLinks();
+  }
+  cancelBloodlinePick();
+}
+
+function cancelBloodlinePick() {
+  bloodlinePicking = false;
+  bloodlineSource = null;
+  const btn = document.getElementById('bloodline-add-btn');
+  btn.classList.remove('picking');
+  btn.title = 'Draw bloodline from this node';
+}
+
+function removeBloodline(id) {
+  userBloodlines = userBloodlines.filter(b => b.id !== id);
+  saveBloodlines();
+  renderBloodlineSidebar();
+  applyBloodlineLinks();
+}
+
+function renderBloodlineSidebar() {
+  const section = document.getElementById('bloodline-section');
+  const list = document.getElementById('bloodline-list');
+  if (!section || !list) return;
+
+  if (userBloodlines.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+  list.innerHTML = '';
+
+  userBloodlines.forEach(bl => {
+    const item = document.createElement('div');
+    item.className = 'bl-item';
+    item.innerHTML = `
+      <span class="bl-node" onclick="focusNode('${bl.source}')">${bl.sourceLabel}</span>
+      <span class="bl-arrow">→</span>
+      <span class="bl-node" onclick="focusNode('${bl.target}')">${bl.targetLabel}</span>
+      <span style="margin-left:auto;cursor:pointer;opacity:0.4;font-size:9px;" onclick="event.stopPropagation();removeBloodline(${bl.id})">✕</span>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function focusNode(nodeId) {
+  const node = gData.nodes.find(n => n.id === nodeId);
+  if (node) {
+    setSelected(node);
+    Graph.centerAt(node.x, node.y, 600);
+    Graph.zoom(3, 600);
+  }
+}
+
+function applyBloodlineLinks() {
+  // Add bloodline links to the graph as special red links
+  // Remove old bloodline links first
+  gData.links = gData.links.filter(l => !l._bloodline);
+
+  userBloodlines.forEach(bl => {
+    const exists = gData.links.some(l => {
+      const sid = typeof l.source === 'object' ? l.source.id : l.source;
+      const tid = typeof l.target === 'object' ? l.target.id : l.target;
+      return sid === bl.source && tid === bl.target && l._bloodline;
+    });
+    if (!exists) {
+      gData.links.push({
+        source: bl.source,
+        target: bl.target,
+        _bloodline: true,
+        _blId: bl.id
+      });
+    }
+  });
+
+  // Re-render with bloodline-aware link styling
+  Graph
+    .linkColor(link => {
+      if (link._bloodline) {
+        // Pulsing red - use time-based opacity
+        return 'rgba(220,40,40,0.7)';
+      }
+      return linkColor(link);
+    })
+    .linkWidth(link => {
+      if (link._bloodline) return 2.5;
+      return linkWidth(link);
+    })
+    .linkDirectionalParticles(link => link._bloodline ? 3 : 0)
+    .linkDirectionalParticleWidth(link => link._bloodline ? 2.5 : 0)
+    .linkDirectionalParticleColor(() => '#e74c3c')
+    .linkDirectionalParticleSpeed(0.006);
+}
+
+async function pushBloodlineToDB(bl) {
+  if (!sbClient || !currentUser) return;
+  try {
+    await sbClient.from('mindmap_bloodlines').insert({
+      user_id: currentUser.id,
+      source_node: bl.source,
+      target_node: bl.target
+    });
+  } catch(e) { console.error('Bloodline push failed:', e); }
+}
+
+async function syncBloodlinesFromDB() {
+  if (!sbClient || !currentUser) return;
+  try {
+    const { data } = await sbClient
+      .from('mindmap_bloodlines')
+      .select('*')
+      .eq('user_id', currentUser.id);
+    if (data && data.length > 0) {
+      // Merge DB bloodlines with local
+      data.forEach(db => {
+        const exists = userBloodlines.some(b =>
+          b.source === db.source_node && b.target === db.target_node
+        );
+        if (!exists) {
+          const srcNode = gData.nodes.find(n => n.id === db.source_node);
+          const tgtNode = gData.nodes.find(n => n.id === db.target_node);
+          userBloodlines.push({
+            id: db.id,
+            source: db.source_node,
+            target: db.target_node,
+            sourceLabel: srcNode ? srcNode.label.replace(/[^\w\s()\-\/&]/g, '').trim() : db.source_node,
+            targetLabel: tgtNode ? tgtNode.label.replace(/[^\w\s()\-\/&]/g, '').trim() : db.target_node,
+            created: db.created_at
+          });
+        }
+      });
+      saveBloodlines();
+      renderBloodlineSidebar();
+      applyBloodlineLinks();
+    }
+  } catch(e) { console.error('Bloodline sync failed:', e); }
+}
+
+// Bloodline add button handler
+document.getElementById('bloodline-add-btn').onclick = () => {
+  if (bloodlinePicking) cancelBloodlinePick();
+  else startBloodlinePick();
+};
+
+// Show/hide bloodline button with selection
+function updateBloodlineBtn() {
+  const btn = document.getElementById('bloodline-add-btn');
+  if (selectedNode && !CORE_IDS.has(selectedNode.id) && currentUser) {
+    btn.style.display = 'flex';
+  } else {
+    btn.style.display = 'none';
+    if (bloodlinePicking) cancelBloodlinePick();
+  }
+}
+
+// Load bloodlines on startup
+loadBloodlines();
+
+// ── SIDEBAR TREE ──────────────────────────────────────────────────────────────
+function buildTree() {
+  const tree = document.getElementById('tree');
+  tree.innerHTML = '';
+
+  TREE.forEach(branch => {
+    const branchEl = document.createElement('div');
+    branchEl.className = 'branch';
+
+    const header = document.createElement('div');
+    header.className = 'branch-header open';
+    header.innerHTML = `<span class="chevron">▶</span><span class="branch-dot" style="background:${branch.color}"></span><span>${branch.label}</span>`;
+    header.onclick = () => {
+      header.classList.toggle('open');
+      children.classList.toggle('open');
+    };
+    branchEl.appendChild(header);
+
+    const children = document.createElement('div');
+    children.className = 'branch-children open';
+
+    branch.children.forEach(sub => {
+      const subEl = document.createElement('div');
+
+      const subItem = document.createElement('div');
+      subItem.className = 'node-item' + (isUnknown(sub.id) ? ' known' : '');
+      subItem.dataset.id = sub.id;
+      subItem.innerHTML = `
+        <span class="chevron" style="font-size:8px;color:rgba(255,255,255,0.2)">${sub.children && sub.children.length ? '▶' : ' '}</span>
+        <span class="node-dot" style="background:${sub.color}"></span>
+        <span class="node-label">${sub.label}</span>
+        <span class="known-badge">⚑</span>
+      `;
+      subItem.onclick = (e) => {
+        if (e.target.classList.contains('chevron') && sub.children && sub.children.length) {
+          subItem.querySelector('.chevron').classList.toggle('open');
+          subChildren.classList.toggle('open');
+          return;
+        }
+        // Left-click: fly to node in 3D
+        const target = gData.nodes.find(n => n.id === sub.id);
+        if (target) {
+          setSelected(target);
+          Graph.cameraPosition(
+            { x: target.x * 1.7, y: target.y * 1.7, z: target.z * 1.7 },
+            { x: target.x, y: target.y, z: target.z },
+            900
+          );
+        }
+      };
+      subItem.oncontextmenu = (e) => {
+        e.preventDefault();
+        // Right-click: set flag only
+        toggleKnown(sub.id);
+        subItem.classList.toggle('known', isUnknown(sub.id));
+      };
+      subEl.appendChild(subItem);
+
+      if (sub.children && sub.children.length) {
+        const subChildren = document.createElement('div');
+        subChildren.className = 'sub-children';
+
+        sub.children.forEach(leaf => {
+          const leafItem = document.createElement('div');
+          leafItem.className = 'sub-node-item' + (isUnknown(leaf.id) ? ' known' : '');
+          leafItem.dataset.id = leaf.id;
+          leafItem.innerHTML = `
+            <span class="node-dot" style="background:${leaf.color}"></span>
+            <span class="node-label">${leaf.label}</span>
+          `;
+          leafItem.onclick = () => {
+            // Left-click: fly to node in 3D
+            const target = gData.nodes.find(n => n.id === leaf.id);
+            if (target) {
+              setSelected(target);
+              Graph.cameraPosition(
+                { x: target.x * 1.7, y: target.y * 1.7, z: target.z * 1.7 },
+                { x: target.x, y: target.y, z: target.z },
+                900
+              );
+            }
+          };
+          leafItem.oncontextmenu = (e) => {
+            e.preventDefault();
+            // Right-click: set flag only
+            toggleKnown(leaf.id);
+            leafItem.classList.toggle('known', isUnknown(leaf.id));
+          };
+          subChildren.appendChild(leafItem);
+        });
+        subEl.appendChild(subChildren);
+
+        subItem.querySelector('.chevron').onclick = (e) => {
+          e.stopPropagation();
+          subChildren.classList.toggle('open');
+        };
+      }
+
+      children.appendChild(subEl);
+    });
+
+    branchEl.appendChild(children);
+    tree.appendChild(branchEl);
+  });
+
+  // DBS sidebar section (cross-zone node, not in TREE)
+  const dbsBranchEl = document.createElement('div');
+  dbsBranchEl.className = 'branch';
+  const dbsHeader = document.createElement('div');
+  dbsHeader.className = 'branch-header open';
+  dbsHeader.innerHTML = `<span class="chevron">▶</span><span class="branch-dot" style="background:${GROUP_COLORS.crosslink}"></span><span>🔬 DBS (NA↔CE)</span>`;
+  const dbsChildren = document.createElement('div');
+  dbsChildren.className = 'branch-children open';
+  dbsHeader.onclick = () => {
+    dbsHeader.classList.toggle('open');
+    dbsChildren.classList.toggle('open');
+  };
+  // Main DBS node + note about 2D-map content
+  const dbsMain = document.createElement('div');
+  dbsMain.className = 'node-item';
+  dbsMain.dataset.id = 'na_ce_dbs';
+  dbsMain.innerHTML = `<span class="node-dot" style="background:${GROUP_COLORS.crosslink}"></span><span class="node-label">🔬 Deep Brain Stimulation</span>`;
+  dbsMain.onclick = () => {
+    const n = gData.nodes.find(x => x.id === 'na_ce_dbs');
+    if (n) { setSelected(n); Graph.cameraPosition({x:n.x*1.6,y:n.y*1.6,z:n.z*1.6},{x:n.x,y:n.y,z:n.z},800); }
+  };
+  dbsChildren.appendChild(dbsMain);
+  const dbsNote = document.createElement('div');
+  dbsNote.style.cssText = 'font-size:9px;color:rgba(241,196,15,0.55);padding:2px 8px 4px 22px;';
+  dbsNote.textContent = '↳ Detail in 2D-Map (click node)';
+  dbsChildren.appendChild(dbsNote);
+  dbsBranchEl.appendChild(dbsHeader);
+  dbsBranchEl.appendChild(dbsChildren);
+  tree.appendChild(dbsBranchEl);
+}
+
+function updateStats() {
+  const total = rawNodes.filter(n => !CORE_IDS.has(n.id)).length;
+  const u = unknown.size;
+  document.getElementById('stats').textContent = `${u} / ${total} to research`;
+}
+
+// ── SEARCH ────────────────────────────────────────────────────────────────────
+(function initSearch() {
+  const input    = document.getElementById('search-input');
+  const results  = document.getElementById('search-results');
+  const clearBtn = document.getElementById('search-clear');
+  let activeIdx  = -1;
+  let matches    = [];
+
+  function highlight(text, q) {
+    const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+    return text.replace(re, '<mark>$1</mark>');
+  }
+
+  function flyTo(node) {
+    if (!node) return;
+    setSelected(node);
+    Graph.cameraPosition(
+      { x: node.x * 1.7, y: node.y * 1.7, z: node.z * 1.7 },
+      { x: node.x, y: node.y, z: node.z },
+      900
+    );
+    input.value = '';
+    results.classList.remove('open');
+    clearBtn.classList.remove('visible');
+    matches = []; activeIdx = -1;
+  }
+
+  function render(q) {
+    results.innerHTML = '';
+    activeIdx = -1;
+    if (!q) { results.classList.remove('open'); return; }
+
+    const lq = q.toLowerCase();
+    matches = gData.nodes.filter(n =>
+      n.label.toLowerCase().includes(lq) || n.id.toLowerCase().includes(lq)
+    ).slice(0, 18);
+
+    if (!matches.length) {
+      results.innerHTML = '<div style="padding:10px 12px;font-size:11px;color:rgba(255,255,255,0.3)">No results</div>';
+      results.classList.add('open');
+      return;
+    }
+
+    matches.forEach((n, i) => {
+      const item = document.createElement('div');
+      item.className = 'sr-item';
+      item.dataset.idx = i;
+      item.innerHTML = `
+        <div class="sr-label">${highlight(n.label, q)}</div>
+        <div class="sr-cat">${catLabel(n.id)}</div>
+      `;
+      item.onmousedown = (e) => { e.preventDefault(); flyTo(n); };
+      results.appendChild(item);
+    });
+    results.classList.add('open');
+  }
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim();
+    clearBtn.classList.toggle('visible', q.length > 0);
+    render(q);
+  });
+
+  input.addEventListener('keydown', e => {
+    const items = results.querySelectorAll('.sr-item');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      activeIdx = Math.min(activeIdx + 1, items.length - 1);
+      items.forEach((el, i) => el.classList.toggle('active', i === activeIdx));
+      items[activeIdx]?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      activeIdx = Math.max(activeIdx - 1, 0);
+      items.forEach((el, i) => el.classList.toggle('active', i === activeIdx));
+      items[activeIdx]?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      const target = activeIdx >= 0 ? matches[activeIdx] : matches[0];
+      flyTo(target);
+    } else if (e.key === 'Escape') {
+      input.value = '';
+      results.classList.remove('open');
+      clearBtn.classList.remove('visible');
+    }
+  });
+
+  input.addEventListener('blur', () => {
+    setTimeout(() => results.classList.remove('open'), 150);
+  });
+
+  clearBtn.onclick = () => {
+    input.value = '';
+    results.classList.remove('open');
+    clearBtn.classList.remove('visible');
+    input.focus();
+  };
+})();
+
+// ── MODE TOOLBAR ──────────────────────────────────────────────────────────────
+// activeMode: null | 'sculptor' | 'axe' | 'blood' | 'watch'
+let activeMode = null;
+
+function spawnStoneParticles(btn) {
+  const offsets = [[-9,-8],[-6,-12],[6,-10],[10,-6],[8,6],[-7,8]];
+  offsets.forEach(([ox,oy]) => {
+    const p = document.createElement('div');
+    p.className = 'stone-particle';
+    p.style.setProperty('--bx', ox + 'px');
+    p.style.setProperty('--by', oy + 'px');
+    p.style.left = '50%'; p.style.top = '50%';
+    btn.appendChild(p);
+    setTimeout(() => p.remove(), 480);
+  });
+}
+
+function spawnWatchScan(btn) {
+  const s = document.createElement('div');
+  s.className = 'watch-scan';
+  btn.appendChild(s);
+  setTimeout(() => s.remove(), 380);
+}
+
+function setMode(mode) {
+  const btnSculptor = document.getElementById('btn-sculptor');
+  const btnAxe      = document.getElementById('btn-axe');
+  const btnBlood    = document.getElementById('btn-blood');
+  const btnWatch    = document.getElementById('btn-watch');
+
+  // Toggle off if same mode clicked again
+  const next = activeMode === mode ? null : mode;
+
+  // Clear all active classes
+  btnSculptor.classList.remove('active-sculptor');
+  btnAxe.classList.remove('active-axe', 'visible');
+  btnBlood.classList.remove('active-blood');
+  btnWatch.classList.remove('active-watch');
+  document.body.classList.remove('mode-sculptor','mode-axe','mode-blood','mode-watch','watch-mode');
+
+  // Cancel bloodline picking if leaving blood mode
+  if (activeMode === 'blood' && next !== 'blood') {
+    if (typeof cancelBloodlinePick === 'function') cancelBloodlinePick();
+  }
+
+  activeMode = next;
+
+  if (activeMode === 'sculptor') {
+    btnSculptor.classList.add('active-sculptor');
+    btnAxe.classList.add('visible');
+    document.body.classList.add('mode-sculptor');
+    spawnStoneParticles(btnSculptor);
+  } else if (activeMode === 'axe') {
+    btnSculptor.classList.add('active-sculptor');
+    btnAxe.classList.add('active-axe', 'visible');
+    document.body.classList.add('mode-axe');
+  } else if (activeMode === 'blood') {
+    btnBlood.classList.add('active-blood');
+    document.body.classList.add('mode-blood');
+  } else if (activeMode === 'watch') {
+    btnWatch.classList.add('active-watch');
+    document.body.classList.add('mode-watch', 'watch-mode');
+    spawnWatchScan(btnWatch);
+  }
+}
+
+document.getElementById('btn-sculptor').addEventListener('click', () => setMode('sculptor'));
+document.getElementById('btn-axe').addEventListener('click',      () => setMode('axe'));
+document.getElementById('btn-blood').addEventListener('click',    () => setMode('blood'));
+
+// Watch: first click if not active → discover unknown; second click (or if already watch) → toggle mode
+let _watchClickCount = 0;
+document.getElementById('btn-watch').addEventListener('click', () => {
+  if (activeMode !== 'watch') {
+    // Discover unknown node first
+    const unknown = gData.nodes.filter(n =>
+      !CORE_IDS.has(n.id) && isUnknown(n.id) && n.x !== undefined
+    );
+    if (unknown.length) {
+      const pick = unknown[Math.floor(Math.random() * unknown.length)];
+      Graph.cameraPosition(
+        { x: pick.x * 2, y: pick.y * 2, z: pick.z * 2 },
+        { x: pick.x, y: pick.y, z: pick.z },
+        1200
+      );
+      tooltip.style.display = 'block';
+      tooltip.querySelector('.t-label').textContent = pick.label;
+      tooltip.querySelector('.t-cat').textContent = '👁 Watch — Undiscovered';
+      tooltip.querySelector('.t-status').textContent = 'Click Watch again to enter Watch Mode';
+      tooltip.style.left = '320px';
+      tooltip.style.top = '80px';
+      setTimeout(() => tooltip.style.display = 'none', 3000);
+      autoRotate = false;
+    }
+  }
+  setMode('watch');
+});
+
+// ── CAMERA & ROTATION ─────────────────────────────────────────────────────────
+let autoRotate = false;
+
+// Proximity label elements
+const proxLabels = [
+  document.getElementById('prox-0'),
+  document.getElementById('prox-1'),
+  document.getElementById('prox-2'),
+];
+
+// Connection label elements (neighbors of selected node)
+const connLabels = [
+  document.getElementById('conn-0'),
+  document.getElementById('conn-1'),
+  document.getElementById('conn-2'),
+  document.getElementById('conn-3'),
+  document.getElementById('conn-4'),
+  document.getElementById('conn-5'),
+  document.getElementById('conn-6'),
+  document.getElementById('conn-7'),
+];
+
+const graphWrap = document.getElementById('graph-wrap');
+
+// Node eye overlay elements
+const nodeEyeOverlay = document.getElementById('node-eye-overlay');
+const nodeEye = document.getElementById('node-eye');
+
+function updateNodeEyeOverlay() {
+  if (!selectedNode || !selectedNode.x) {
+    nodeEye.classList.remove('visible');
+    return;
+  }
+
+  const camera = Graph.camera ? Graph.camera() : Graph._camera;
+  if (!camera) return;
+
+  const rect = graphWrap.getBoundingClientRect();
+  const width = rect.width;
+  const height = rect.height;
+  const vector = new THREE.Vector3();
+
+  // Project selected node position to screen coordinates
+  vector.set(selectedNode.x, selectedNode.y, selectedNode.z);
+  vector.project(camera);
+
+  const x = (vector.x * 0.5 + 0.5) * width;
+  const y = (-vector.y * 0.5 + 0.5) * height;
+
+  if (vector.z < 1 && x > 0 && x < width && y > 0 && y < height) {
+    // Position eye overlay on the node (1/8 of node size)
+    const nodeSize = selectedNode.val || 5;
+    const eyeSize = nodeSize * 0.125; // 1/8 of node size
+    const eyeOffset = nodeSize * 0.3; // Offset from center
+    
+    nodeEye.style.left = (x + eyeOffset) + 'px';
+    nodeEye.style.top = (y - eyeOffset) + 'px';
+    nodeEye.style.fontSize = eyeSize + 'px';
+    nodeEye.classList.add('visible');
+  } else {
+    nodeEye.classList.remove('visible');
+  }
+}
+
+function updateProximityLabels() {
+  // Access Three.js camera from ForceGraph
+  const camera = Graph.camera ? Graph.camera() : Graph._camera;
+  if (!camera || !gData.nodes[0].x) return;
+
+  // Get renderer dimensions
+  const rect = graphWrap.getBoundingClientRect();
+  const width = rect.width;
+  const height = rect.height;
+
+  // Get actual camera position in 3D space
+  const camPos = camera.position;
+
+  // Calculate 3D distance to each node and sort
+  const nodesWithDist = gData.nodes.map(n => {
+    const dx = n.x - camPos.x;
+    const dy = n.y - camPos.y;
+    const dz = n.z - camPos.z;
+    return { node: n, dist: Math.sqrt(dx*dx + dy*dy + dz*dz) };
+  });
+  nodesWithDist.sort((a, b) => a.dist - b.dist);
+
+  // Project 3D positions to screen for top 3
+  const vector = new THREE.Vector3();
+  nodesWithDist.slice(0, 3).forEach((item, i) => {
+    const n = item.node;
+    vector.set(n.x, n.y, n.z);
+    vector.project(camera);
+
+    const x = (vector.x * 0.5 + 0.5) * width;
+    const y = (-vector.y * 0.5 + 0.5) * height;
+
+    // Only show if in front of camera (z < 1) and within bounds
+    if (vector.z < 1 && x > 0 && x < width && y > 0 && y < height) {
+      proxLabels[i].style.left = x + 'px';
+      proxLabels[i].style.top = y + 'px';
+      proxLabels[i].querySelector('.p-name').textContent = n.label.replace(/^[^\w]*/, '');
+      proxLabels[i].querySelector('.p-cat').textContent = catLabel(n.id);
+      proxLabels[i].classList.add('visible');
+    } else {
+      proxLabels[i].classList.remove('visible');
+    }
+  });
+
+  // Hide remaining labels if any
+  for (let i = nodesWithDist.slice(0, 3).length; i < 3; i++) {
+    proxLabels[i].classList.remove('visible');
+  }
+}
+
+function updateConnectionLabels() {
+  const camera = Graph.camera ? Graph.camera() : Graph._camera;
+  if (!camera || !gData.nodes[0].x) return;
+
+  const rect = graphWrap.getBoundingClientRect();
+  const width = rect.width;
+  const height = rect.height;
+
+  // If no node selected, hide all connection labels
+  if (!selectedNode) {
+    connLabels.forEach(lbl => lbl.classList.remove('visible'));
+    return;
+  }
+
+  // Get all connected nodes (1st degree neighbors)
+  const connectedNodes = [];
+  gData.links.forEach(l => {
+    const sid = typeof l.source === 'object' ? l.source.id : l.source;
+    const tid = typeof l.target === 'object' ? l.target.id : l.target;
+    if (sid === selectedNode.id) {
+      const node = gData.nodes.find(n => n.id === tid);
+      if (node) connectedNodes.push(node);
+    } else if (tid === selectedNode.id) {
+      const node = gData.nodes.find(n => n.id === sid);
+      if (node) connectedNodes.push(node);
+    }
+  });
+
+  // Also add secondary nodes (2nd degree) if we have room
+  const secondaryNodes = [];
+  if (connectedNodes.length < 8) {
+    const primaryIds = new Set(connectedNodes.map(n => n.id));
+    primaryIds.add(selectedNode.id);
+
+    gData.links.forEach(l => {
+      const sid = typeof l.source === 'object' ? l.source.id : l.source;
+      const tid = typeof l.target === 'object' ? l.target.id : l.target;
+
+      // Check if this link connects to a primary node (but not to selected node directly)
+      let neighborId = null;
+      if (primaryIds.has(sid) && tid !== selectedNode.id) neighborId = tid;
+      else if (primaryIds.has(tid) && sid !== selectedNode.id) neighborId = sid;
+
+      if (neighborId && !primaryIds.has(neighborId)) {
+        const node = gData.nodes.find(n => n.id === neighborId);
+        if (node && !secondaryNodes.find(n => n.id === node.id)) {
+          secondaryNodes.push(node);
+        }
+      }
+    });
+  }
+
+  // Combine: primary first, then secondary (max 8 total)
+  const nodesToShow = [...connectedNodes, ...secondaryNodes].slice(0, 8);
+
+  // Project and show labels
+  const vector = new THREE.Vector3();
+  nodesToShow.forEach((n, i) => {
+    vector.set(n.x, n.y, n.z);
+    vector.project(camera);
+
+    const x = (vector.x * 0.5 + 0.5) * width;
+    const y = (-vector.y * 0.5 + 0.5) * height;
+
+    if (vector.z < 1 && x > 0 && x < width && y > 0 && y < height) {
+      connLabels[i].style.left = x + 'px';
+      connLabels[i].style.top = y + 'px';
+      connLabels[i].querySelector('.c-name').textContent = n.label.replace(/^[^\w]*/, '');
+      connLabels[i].querySelector('.c-cat').textContent = catLabel(n.id);
+      connLabels[i].classList.add('visible');
+    } else {
+      connLabels[i].classList.remove('visible');
+    }
+  });
+
+  // Hide remaining
+  for (let i = nodesToShow.length; i < 8; i++) {
+    connLabels[i].classList.remove('visible');
+  }
+}
+
+// ── NODE BADGES (DIY/BUY/R&D) ─────────────────────────────────────────────────
+const badgeContainer = document.getElementById('node-badges');
+const instContainer = document.getElementById('inst-tags');
+let badgeElements = {}; // id -> element
+let instElements = {};  // id -> element
+
+function initNodeBadges() {
+  // Create DIY/BUY/Rn'D badge elements
+  Object.keys(BADGE_MAP).forEach(id => {
+    const badgeText = BADGE_MAP[id];
+    const type = badgeText.toLowerCase().replace(/[^a-z]/g, ''); // diy, buy, rnd
+    const el = document.createElement('div');
+    el.className = `node-badge ${type}`;
+    el.textContent = badgeText;
+    el.style.display = 'none';
+    badgeContainer.appendChild(el);
+    badgeElements[id] = el;
+  });
+
+  // Create IBM Carbon Style Institution Tags
+  Object.keys(INSTITUTION_LABELS).forEach(id => {
+    const inst = INSTITUTION_LABELS[id];
+    const el = document.createElement('div');
+    el.className = `inst-tag ${inst.type}`;
+    el.textContent = inst.short;
+    el.title = inst.full; // tooltip
+    el.style.display = 'none';
+    instContainer.appendChild(el);
+    instElements[id] = el;
+  });
+}
+
+function updateNodeBadges() {
+  const camera = Graph.camera ? Graph.camera() : Graph._camera;
+  if (!camera || !gData.nodes[0].x) return;
+
+  const rect = graphWrap.getBoundingClientRect();
+  const width = rect.width;
+  const height = rect.height;
+  const vector = new THREE.Vector3();
+
+  // Find neighbor IDs of selected node
+  let visibleIds = new Set();
+  if (selectedNode) {
+    visibleIds.add(selectedNode.id);
+    // Find all direct neighbors (connected by links)
+    gData.links.forEach(link => {
+      const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
+      const targetId = typeof link.target === 'object' ? link.target.id : link.target;
+      if (sourceId === selectedNode.id) visibleIds.add(targetId);
+      if (targetId === selectedNode.id) visibleIds.add(sourceId);
+    });
+  }
+
+  // Update DIY/BUY/Rn'D badges - only show for selected node + neighbors
+  Object.keys(badgeElements).forEach(id => {
+    const node = gData.nodes.find(n => n.id === id);
+    const el = badgeElements[id];
+    if (!node || !node.x) { el.style.display = 'none'; return; }
+
+    // Only show if this node is selected or neighbor
+    if (!visibleIds.has(id)) { el.style.display = 'none'; return; }
+
+    vector.set(node.x, node.y + (node.val || 5) * 1.5, node.z);
+    vector.project(camera);
+
+    const x = (vector.x * 0.5 + 0.5) * width;
+    const y = (-vector.y * 0.5 + 0.5) * height;
+
+    if (vector.z < 1 && x > 20 && x < width - 20 && y > 20 && y < height - 20) {
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      el.style.display = 'block';
+      el.classList.add('visible');
+    } else {
+      el.style.display = 'none';
+      el.classList.remove('visible');
+    }
+  });
+
+  // Update Institution Tags - only show for selected node + neighbors
+  Object.keys(instElements).forEach(id => {
+    const node = gData.nodes.find(n => n.id === id);
+    const el = instElements[id];
+    if (!node || !node.x) { el.style.display = 'none'; return; }
+
+    // Only show if this node is selected or neighbor
+    if (!visibleIds.has(id)) { el.style.display = 'none'; return; }
+
+    // Position higher than badges
+    vector.set(node.x, node.y + (node.val || 5) * 2.2, node.z);
+    vector.project(camera);
+
+    const x = (vector.x * 0.5 + 0.5) * width;
+    const y = (-vector.y * 0.5 + 0.5) * height;
+
+    if (vector.z < 1 && x > 30 && x < width - 30 && y > 30 && y < height - 30) {
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      el.style.display = 'block';
+      el.classList.add('visible');
+    } else {
+      el.style.display = 'none';
+      el.classList.remove('visible');
+    }
+  });
+}
+
+setInterval(() => {
+  if (!autoRotate) {
+    updateProximityLabels();
+    updateConnectionLabels();
+    updateNodeBadges();
+    return;
+  }
+  const { x, z } = Graph.cameraPosition();
+  const angle = Math.atan2(z, x) + 0.003;
+  const r = Math.sqrt(x*x + z*z);
+  Graph.cameraPosition({ x: r * Math.cos(angle), z: r * Math.sin(angle) });
+  updateProximityLabels();
+  updateConnectionLabels();
+  updateNodeBadges();
+  updateNodeEyeOverlay();
+}, 30);
+
+document.getElementById('graph').addEventListener('mousedown', () => autoRotate = false);
+
+// Right-click to activate Watch mode or deselect and return to overview
+document.getElementById('graph').addEventListener('contextmenu', (e) => {
+  e.preventDefault(); // Prevent browser context menu
+  e.stopPropagation();
+  console.log('Right-click detected, selectedNode:', selectedNode);
+  
+  if (selectedNode && selectedNode.id) {
+    // Toggle Watch mode - simplify: any right-click on selected node toggles watch mode
+    if (activeMode === 'watch') {
+      // Exit Watch mode
+      setMode('default');
+      setSelected(null);
+      // Reset camera to overview position
+      if (Graph && Graph.cameraPosition) {
+        Graph.cameraPosition({ x: 0, y: 0, z: 600 }, { x: 0, y: 0, z: 0 }, 1200);
+      }
+      console.log('Watch mode deactivated');
+    } else {
+      // Enter Watch mode
+      setMode('watch');
+      console.log('Watch mode activated for node:', selectedNode.label);
+    }
+  } else {
+    // No node selected - right-click does nothing or deselects
+    console.log('No node selected, right-click does nothing');
+  }
+});
+
+setTimeout(() => {
+  Graph.cameraPosition({ x: 0, y: 0, z: 600 }, { x: 0, y: 0, z: 0 }, 2500);
+}, 400);
+
+// ── WIKI MAP ──────────────────────────────────────────────────────────────────
+// Values: Wikipedia article title (used in API + link). null = no article.
+const WIKI_MAP = {
+  center:          "Life_extension",
+  // BP
+  bp:              "Regenerative_medicine",
+  bp_organ:        "Tissue_engineering",
+  bp_heart:        "Artificial_heart",
+  bp_kidney:       "Organ-on-a-chip",
+  bp_liver:        "Liver_organoid",
+  bp_lung:         "Decellularization",
+  bp_xeno:         "Xenotransplantation",
+  bp_cryo:         "Cryonics",
+  bp_vitrify:      "Vitrification_(cryopreservation)",
+  bp_cryo_neuro:   "Cryonics",
+  bp_alcor:        "Alcor_Life_Extension_Foundation",
+  bp_regen:        "Regenerative_medicine",
+  bp_stem:         "Induced_pluripotent_stem_cell",
+  bp_bacillus_f:   "Bacillus_cereus",
+  bp_yamanaka:     "Yamanaka_factors",
+  bp_exo:          "Exosome",
+  bp_sen:          "Senolytic",
+  bp_telomerase:   "Telomerase",
+  bp_epigenetic:   "Epigenetic_reprogramming",
+  bp_gdf:          "GDF11",
+  bp_mito:         "Mitochondrial_replacement_therapy",
+  bp_rap:          "Mechanistic_target_of_rapamycin",
+  bp_altos:        "Altos_Labs",
+  // NA
+  na:              "Brain%E2%80%93computer_interface",
+  na_bci:          "Brain%E2%80%93computer_interface",
+  na_neuralink:    "Neuralink",
+  na_synchron:     "Synchron_(company)",
+  na_blackrock:    "Blackrock_Neurotech",
+  na_neuraldust:   "Neural_dust",
+  na_endovascular: "Endovascular_surgery",
+  na_optogenetics: "Optogenetics",
+  na_closedloop:   "Neurostimulation",
+  na_spike:        "Spike_sorting",
+  na_bmi:          "Brain%E2%80%93computer_interface",
+  na_darpa:        "DARPA",
+  na_rec:          "Chemogenetics",
+  na_dreads:       "Chemogenetics",
+  na_electroceutical: "Electroceutical",
+  na_flexprobe:    "Neural_probe",
+  na_mxene:        "MXene",
+  // CE
+  ce:              "Cognitive_enhancement",
+  ce_neu:          "Neuroplasticity",
+  ce_fus:          "Focused_ultrasound",
+  ce_tdcs:         "Transcranial_direct-current_stimulation",
+  ce_photo:        "Photobiomodulation",
+  ce_ltp:          "Long-term_potentiation",
+  ce_glymph:       "Glymphatic_system",
+  ce_neuroinflam:  "Neuroinflammation",
+  ce_mem:          "Memory_consolidation",
+  ce_organoid:     "Cerebral_organoid",
+  ce_synaptic:     "Synaptome",
+  ce_cortical:     "Electrocorticography",
+  ce_invivo_crispr:"CRISPR",
+  // MC
+  mc:              "Nanotechnology",
+  mc_nano:         "Nanorobotics",
+  mc_dna_orig:     "DNA_origami",
+  mc_molmotor:     "Molecular_motor",
+  mc_nanobot:      "Nanomedicine",
+  mc_fab:          "Microfabrication",
+  mc_mems:         "Microelectromechanical_systems",
+  mc_lab_chip:     "Lab-on-a-chip",
+  mc_microfluid:   "Microfluidics",
+  mc_photonic:     "Photonic_integrated_circuit",
+  mc_optics:       "Optogenetics",
+  mc_optogen:      "Optogenetics",
+  mc_lightsheet:   "Light_sheet_fluorescence_microscopy",
+  mc_cryo_opt:     "Cryogenic_electron_microscopy",
+  mc_synbio:       "Synthetic_biology",
+  mc_dna_store:    "DNA_digital_data_storage",
+  mc_genecircuit:  "Synthetic_biology",
+  mc_celleng:      "Cell_biology",
+  mc_clone_neuro:  "Nanorobotics",
+  mc_clone_cryo:   "Cryonics",
+  // Gaps
+  bp_gaps:         "Organ_transplantation",
+  na_gaps:         "Brain%E2%80%93computer_interface",
+  ce_gaps:         "Cognitive_enhancement",
+  gap_cryo_EM:     "Cryogenic_electron_microscopy",
+  gap_vascular:    "Angiogenesis",
+  gap_xeno_fail:   "Xenotransplantation",
+  gap_cleanroom:   "Cleanroom",
+  gap_consciousness:"Philosophy_of_mind",
+  gap_wbe:         "Mind_uploading",
+  gap_seq:         "Single-cell_sequencing",
+  gap_longterm:    "Neural_engineering",
+  gap_crispr_fail: "CRISPR",
+  // BP_AGING – Aging Mechanisms (under BP)
+  bp_aging:        "Hallmarks_of_aging",
+  ag_iit:          "David_Sinclair_(biologist)",
+  ag_epigenome:    "Epigenome",
+  ag_osk:          "Yamanaka_factors",
+  ag_dnoise:       "DNA_damage_theory_of_aging",
+  ag_hallmarks:    "Hallmarks_of_aging",
+  ag_genomic:      "Genomic_instability",
+  ag_telomere:     "Telomere",
+  ag_epimut:       "Epigenetics",
+  ag_proteostasis: "Proteostasis",
+  ag_nutrient:     "Mechanistic_target_of_rapamycin",
+  ag_mito:         "Mitochondrial_disease",
+  ag_senescence:   "Cellular_senescence",
+  ag_stemex:       "Stem_cell",
+  ag_intercomm:    "Inflammaging",
+  ag_new_hallmarks:"Hallmarks_of_aging",
+  ag_autophagy:    "Autophagy",
+  ag_dysbiosis:    "Dysbiosis",
+  ag_chronic_inflam:"Inflammaging",
+  ag_institutes:   "Longevity_science",
+  ag_sinclair:     "David_Sinclair_(biologist)",
+  ag_altos:        "Altos_Labs",
+  ag_calico:       "Calico_(company)",
+  ag_lifespan_io:  "Longevity_science",
+  ag_nobel_2012:   "Shinya_Yamanaka",
+  ag_gaps:         "Hallmarks_of_aging",
+  gap_ag_clock:    "Epigenetic_clock",
+  gap_ag_reversal: "Epigenetic_reprogramming",
+  gap_ag_osk_trial:"Gene_therapy",
+  // DBS – Deep Brain Stimulation
+  na_ce_dbs:       "Deep_brain_stimulation",
+  dbs_surgery:     "Deep_brain_stimulation",
+  dbs_stereoframe: "Stereotactic_surgery",
+  dbs_burrhole:    "Craniotomy",
+  dbs_cannula:     "Cannula",
+  dbs_multipass:   "Deep_brain_stimulation",
+  dbs_anesthesia:  "Local_anesthesia",
+  dbs_porcine:     "Animal_model",
+  dbs_phantom:     "Phantom_(physics)",
+  dbs_electrodes:  "Microelectrode",
+  dbs_ptir:        "Platinum-iridium",
+  dbs_tungsten:    "Tungsten",
+  dbs_steel:       "Stainless_steel",
+  dbs_glass:       "Patch_clamp",
+  dbs_parylene:    "Parylene",
+  dbs_multicontact:"Multielectrode_array",
+  dbs_fiber_optic: "Fiber_optics",
+  dbs_polyimide:   "Polyimide",
+  dbs_neuro:       "Neuron",
+  dbs_actionpot:   "Action_potential",
+  dbs_restpot:     "Resting_potential",
+  dbs_hf_paradox:  "Deep_brain_stimulation",
+  dbs_stn:         "Subthalamic_nucleus",
+  dbs_scc:         "Cingulate_cortex",
+  dbs_stim:        "Deep_brain_stimulation",
+  dbs_freq:        "Neurostimulation",
+  dbs_adaptive:    "Closed-loop_neurostimulation",
+  dbs_window:      "Therapeutic_window",
+  dbs_imaging:     "Neuroimaging",
+  dbs_7tmri:       "Magnetic_resonance_imaging",
+  dbs_dti:         "Diffusion_MRI",
+  dbs_iomri:       "Intraoperative_MRI",
+  dbs_squid:       "SQUID",
+  dbs_fus:         "Focused_ultrasound",
+  dbs_fus_mech:    "Transcranial_focused_ultrasound",
+  dbs_phased:      "Phased_array",
+  dbs_kwave:       "Acoustics",
+  dbs_suppliers:   "Deep_brain_stimulation",
+  dbs_fhc:         "Microelectrode",
+  dbs_wpi:         "Microelectrode",
+  dbs_sutter:      "Patch_clamp",
+  dbs_narishige:   "Patch_clamp",
+  dbs_neuralynx:   "Electrophysiology",
+  dbs_gaps:        "Deep_brain_stimulation",
+  gap_dbs_flex:    "Polyimide",
+  gap_dbs_calib:   "Focused_ultrasound",
+  gap_dbs_access:  "Deep_brain_stimulation",
+  gap_dbs_ptir_vs_w:"Microelectrode",
+};
+
+// ── DATABASE MAP ────────────────────────────────────────────────────────────────
+// External databases and repositories (direct URLs)
+const DATABASE_MAP = {
+  bp_bacillus_f: "https://www.ncbi.nlm.nih.gov/bioproject/PRJNA205777",
+  // Add more database links as needed
+};
+
+// ── PUBMED MAP ───────────────────────────────────────────────────────────────────
+// PubMed search queries for scientific articles (use node label or specific keywords)
+const PUBMED_MAP = {
+  bp_bacillus_f: "Bacillus cereus strain F permafrost longevity",
+  bp_stem: "induced pluripotent stem cells longevity",
+  bp_yamanaka: "Yamanaka factors cellular reprogramming aging",
+  bp_sen: "senolytics anti-aging therapy",
+  bp_telomerase: "telomerase activation aging research",
+  bp_rap: "rapamycin mTOR inhibition lifespan",
+  ag_osk: "OSK partial reprogramming epigenetic age",
+  ag_sinclair: "David Sinclair resveratrol NMN aging",
+  ag_altos: "Altos Labs cellular reprogramming",
+  na_neuralink: "Neuralink brain computer interface safety",
+  na_synchron: "Synchron Stentrode clinical trials",
+  dbs_stn: "deep brain stimulation subthalamic nucleus Parkinson",
+  // Add more PubMed queries as needed
+};
+
+// ── AUTO SUMMARY SEARCH ───────────────────────────────────────────────────────────
+// Automatically search for summaries when community adds new bubbles
+async function searchAutoSummary(nodeLabel, nodeId) {
+  console.log('[AUTO-SUMMARY] Searching for:', nodeLabel);
+  
+  // Try Wikipedia first
+  const wikiResult = await searchWikipedia(nodeLabel);
+  if (wikiResult) {
+    console.log('[AUTO-SUMMARY] Found Wikipedia:', wikiResult.title);
+    // Auto-add to WIKI_MAP
+    WIKI_MAP[nodeId] = wikiResult.pageid;
+    return { type: 'wikipedia', ...wikiResult };
+  }
+  
+  // Try PubMed for scientific topics
+  const pubmedResult = await searchPubMed(nodeLabel);
+  if (pubmedResult) {
+    console.log('[AUTO-SUMMARY] Found PubMed:', pubmedResult.query);
+    // Auto-add to PUBMED_MAP
+    PUBMED_MAP[nodeId] = pubmedResult.query;
+    return { type: 'pubmed', ...pubmedResult };
+  }
+  
+  // Try OpenClaw for complex search
+  const openclawResult = await searchOpenClaw(nodeLabel);
+  if (openclawResult) {
+    console.log('[AUTO-SUMMARY] Found via OpenClaw:', openclawResult.title);
+    return { type: 'openclaw', ...openclawResult };
+  }
+  
+  return null;
+}
+
+// Search Wikipedia API
+async function searchWikipedia(query) {
+  try {
+    const searchUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`;
+    const response = await fetch(searchUrl);
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        title: data.title,
+        extract: data.extract,
+        pageid: data.title.replace(/\s+/g, '_'),
+        url: data.content_urls?.desktop?.page
+      };
+    }
+  } catch (e) {
+    console.log('[WIKI-SEARCH] Failed:', e.message);
+  }
+  return null;
+}
+
+// Search PubMed API
+async function searchPubMed(query) {
+  try {
+    const searchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(query)}&retmax=5&retmode=json`;
+    const response = await fetch(searchUrl);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.esearchresult && data.esearchresult.idlist.length > 0) {
+        return {
+          query: query,
+          count: data.esearchresult.count,
+          ids: data.esearchresult.idlist.slice(0, 3)
+        };
+      }
+    }
+  } catch (e) {
+    console.log('[PUBMED-SEARCH] Failed:', e.message);
+  }
+  return null;
+}
+
+// Search via OpenClaw MCP
+async function searchOpenClaw(query) {
+  try {
+    // Use OpenClaw bridge if available
+    const result = await fetch('http://192.168.2.136:18789/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: query + ' wikipedia summary' })
+    });
+    if (result.ok) {
+      const data = await result.json();
+      if (data.results && data.results.length > 0) {
+        return {
+          title: data.results[0].title,
+          url: data.results[0].url,
+          snippet: data.results[0].snippet
+        };
+      }
+    }
+  } catch (e) {
+    console.log('[OPENCLAW-SEARCH] Failed:', e.message);
+  }
+  return null;
+}
+
+// ── WIKI PANEL LOGIC ──────────────────────────────────────────────────────────
+const wikiOverlay  = document.getElementById('wiki-overlay');
+const wikiLoading  = document.getElementById('wiki-loading');
+const wikiThumb    = document.getElementById('wiki-thumb');
+const wikiExtract  = document.getElementById('wiki-extract');
+const wikiLink     = document.getElementById('wiki-link');
+const wpTitle      = document.getElementById('wp-title');
+const wpCat        = document.getElementById('wp-cat');
+
+function openWikiPanel(node) {
+  const slug = WIKI_MAP[node.id];
+  const dbUrl = DATABASE_MAP[node.id];
+  const pubmedQuery = PUBMED_MAP[node.id];
+  if (!slug && !dbUrl && !pubmedQuery) return;
+
+  wpTitle.textContent = node.label.replace(/^[^\w]*/, '');
+  wpCat.textContent   = catLabel(node.id);
+  wikiLoading.style.display  = 'block';
+  wikiExtract.textContent    = '';
+  wikiThumb.style.display    = 'none';
+  
+  // Set Wikipedia link if available
+  if (slug) {
+    wikiLink.href = `https://en.wikipedia.org/wiki/${slug}`;
+    wikiLink.style.display = 'inline-flex';
+  } else {
+    wikiLink.style.display = 'none';
+  }
+  
+  // Show/hide database link button
+  const dbLinkBtn = document.getElementById('db-link');
+  if (dbUrl) {
+    dbLinkBtn.href = dbUrl;
+    dbLinkBtn.style.display = 'inline-flex';
+  } else {
+    dbLinkBtn.style.display = 'none';
+  }
+  
+  // Show/hide PubMed link button
+  const pubmedBtn = document.getElementById('pubmed-link');
+  if (pubmedQuery) {
+    pubmedBtn.href = `https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(pubmedQuery)}`;
+    pubmedBtn.style.display = 'inline-flex';
+  } else {
+    pubmedBtn.style.display = 'none';
+  }
+  
+  wikiOverlay.classList.add('open');
+  document.body.classList.add('wiki-open');
+
+  // Load Wikipedia summary if available
+  if (slug) {
+    fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${slug}`)
+      .then(r => r.json())
+      .then(data => {
+        wikiLoading.style.display = 'none';
+        let summary = data.extract || 'No summary available.';
+        
+        // Add PubMed note for scientific topics
+        if (pubmedQuery) {
+          summary += '\n\n📚 For scientific research, see PubMed articles.';
+        }
+        
+        wikiExtract.textContent = summary;
+        if (data.thumbnail && data.thumbnail.source) {
+          wikiThumb.src = data.thumbnail.source;
+          wikiThumb.style.display = 'block';
+        }
+      })
+      .catch(() => {
+        wikiLoading.style.display = 'none';
+        wikiExtract.textContent = 'Could not load Wikipedia summary. Check the research links below for scientific information.';
+      });
+  } else {
+    // No Wikipedia but have scientific links
+    wikiLoading.style.display = 'none';
+    let summary = 'No Wikipedia article available. ';
+    if (dbUrl || pubmedQuery) {
+      summary += 'Check the research links below for scientific information.';
+    } else {
+      summary += 'No additional information sources available.';
+    }
+    wikiExtract.textContent = summary;
+  }
+}
+
+function closeWikiPanel() {
+  wikiOverlay.classList.remove('open');
+  document.body.classList.remove('wiki-open');
+}
+
+document.getElementById('wiki-close').onclick   = closeWikiPanel;
+document.getElementById('wiki-backdrop').ondblclick = closeWikiPanel;
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+// Sidebar builds independently of 3D graph
+try {
+  buildTree();
+  updateStats();
+  initNodeBadges();
+} catch (e) {
+  console.error('Sidebar init failed:', e);
+  document.getElementById('tree').innerHTML = '<div style="padding:20px;color:#e74c3c;font-size:12px;">Error loading sidebar</div>';
+}
+</script>
+</body>
+</html>
